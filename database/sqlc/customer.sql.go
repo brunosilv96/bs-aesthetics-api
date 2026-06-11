@@ -7,38 +7,30 @@ package database
 
 import (
 	"context"
-	"database/sql"
-	"time"
 
-	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createCustomer = `-- name: CreateCustomer :one
-INSERT INTO customers (id, name, email, phone, birth_date, created_at, updated_at, deleted_at) 
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id, name, email, phone, birth_date, created_at, updated_at, deleted_at
+INSERT INTO customers (name, email, phone, password, birth_date, created_at)
+VALUES ($1, $2, $3, $4, $5, NOW()) RETURNING id, name, email, phone, password, birth_date, created_at, updated_at, deleted_at
 `
 
 type CreateCustomerParams struct {
-	ID        uuid.UUID    `json:"id"`
-	Name      string       `json:"name"`
-	Email     string       `json:"email"`
-	Phone     string       `json:"phone"`
-	BirthDate time.Time    `json:"birth_date"`
-	CreatedAt time.Time    `json:"created_at"`
-	UpdatedAt sql.NullTime `json:"updated_at"`
-	DeletedAt sql.NullTime `json:"deleted_at"`
+	Name      string           `json:"name"`
+	Email     string           `json:"email"`
+	Phone     string           `json:"phone"`
+	Password  string           `json:"password"`
+	BirthDate pgtype.Timestamp `json:"birth_date"`
 }
 
 func (q *Queries) CreateCustomer(ctx context.Context, arg CreateCustomerParams) (Customer, error) {
-	row := q.db.QueryRowContext(ctx, createCustomer,
-		arg.ID,
+	row := q.db.QueryRow(ctx, createCustomer,
 		arg.Name,
 		arg.Email,
 		arg.Phone,
+		arg.Password,
 		arg.BirthDate,
-		arg.CreatedAt,
-		arg.UpdatedAt,
-		arg.DeletedAt,
 	)
 	var i Customer
 	err := row.Scan(
@@ -46,6 +38,7 @@ func (q *Queries) CreateCustomer(ctx context.Context, arg CreateCustomerParams) 
 		&i.Name,
 		&i.Email,
 		&i.Phone,
+		&i.Password,
 		&i.BirthDate,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -55,11 +48,11 @@ func (q *Queries) CreateCustomer(ctx context.Context, arg CreateCustomerParams) 
 }
 
 const loadCustomers = `-- name: LoadCustomers :many
-SELECT id, name, email, phone, birth_date, created_at, updated_at, deleted_at FROM customers
+SELECT id, name, email, phone, password, birth_date, created_at, updated_at, deleted_at FROM customers
 `
 
 func (q *Queries) LoadCustomers(ctx context.Context) ([]Customer, error) {
-	rows, err := q.db.QueryContext(ctx, loadCustomers)
+	rows, err := q.db.Query(ctx, loadCustomers)
 	if err != nil {
 		return nil, err
 	}
@@ -72,6 +65,7 @@ func (q *Queries) LoadCustomers(ctx context.Context) ([]Customer, error) {
 			&i.Name,
 			&i.Email,
 			&i.Phone,
+			&i.Password,
 			&i.BirthDate,
 			&i.CreatedAt,
 			&i.UpdatedAt,
@@ -80,9 +74,6 @@ func (q *Queries) LoadCustomers(ctx context.Context) ([]Customer, error) {
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

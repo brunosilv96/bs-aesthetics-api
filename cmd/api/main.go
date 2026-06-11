@@ -1,7 +1,7 @@
 package main
 
 import (
-	"database/sql"
+	"context"
 	"log"
 
 	"github.com/brunosilv96/bs-aesthetics-api/config"
@@ -11,19 +11,22 @@ import (
 	"github.com/brunosilv96/bs-aesthetics-api/internal/router"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/service"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5"
 	_ "github.com/lib/pq"
 )
 
 func main() {
+	ctx := context.Background()
+
 	// Load configurations
 	cfg := config.Load()
 
 	// Start Database Connection
-	conn, err := sql.Open("postgres", cfg.DatabaseURL)
+	conn, err := pgx.Connect(ctx, cfg.DatabaseURL)
 	if err != nil {
 		log.Fatal("Error to initialize database:", err)
 	}
-	defer conn.Close()
+	defer conn.Close(ctx)
 
 	store := database.New(conn)
 

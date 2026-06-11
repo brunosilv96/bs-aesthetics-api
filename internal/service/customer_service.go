@@ -2,12 +2,11 @@ package service
 
 import (
 	"context"
-	"time"
 
 	database "github.com/brunosilv96/bs-aesthetics-api/database/sqlc"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/model"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/repository"
-	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type CustomerService struct {
@@ -22,12 +21,14 @@ func NewCustomerService(repository repository.CustomerRepository) *CustomerServi
 
 func (service CustomerService) Register(ctx context.Context, payload model.CreateCustomer) (model.CustomerResponse, error) {
 	dbModel := database.CreateCustomerParams{
-		ID:        uuid.New(),
-		Name:      payload.Name,
-		Email:     payload.Email,
-		Phone:     payload.Phone,
-		BirthDate: payload.BirthDate,
-		CreatedAt: time.Now(),
+		Name:     payload.Name,
+		Email:    payload.Email,
+		Phone:    payload.Phone,
+		Password: payload.Password,
+		BirthDate: pgtype.Timestamp{
+			Time:  payload.BirthDate,
+			Valid: true,
+		},
 	}
 
 	customer, err := service.repository.Save(ctx, dbModel)
@@ -36,11 +37,11 @@ func (service CustomerService) Register(ctx context.Context, payload model.Creat
 	}
 
 	return model.CustomerResponse{
-		ID:        customer.ID,
+		ID:        customer.ID.String(),
 		Name:      customer.Name,
 		Email:     customer.Email,
 		Phone:     customer.Phone,
-		BirthDate: customer.BirthDate,
-		CreatedAt: customer.CreatedAt,
+		BirthDate: customer.BirthDate.Time,
+		CreatedAt: customer.CreatedAt.Time,
 	}, nil
 }
