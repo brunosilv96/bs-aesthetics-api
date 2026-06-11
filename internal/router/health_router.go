@@ -5,6 +5,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func NewRouter(router *gin.Engine) {
+func HealthCheckRouter(router *gin.Engine) {
 	router.GET("/health", handler.HealthCheck)
 }

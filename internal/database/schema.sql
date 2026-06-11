@@ -1,3 +1,0 @@
-CREATE TABLE teste (
-    id   BIGSERIAL PRIMARY KEY
-)
