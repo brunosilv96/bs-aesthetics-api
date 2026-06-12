@@ -3,16 +3,17 @@ package main
 import (
 	"context"
 	"log"
+	"log/slog"
 
 	"github.com/brunosilv96/bs-aesthetics-api/config"
 	database "github.com/brunosilv96/bs-aesthetics-api/database/sqlc"
+	error "github.com/brunosilv96/bs-aesthetics-api/internal/error"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/handler"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/repository"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/router"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/service"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
-	_ "github.com/lib/pq"
 )
 
 func main() {
@@ -20,11 +21,16 @@ func main() {
 
 	// Load configurations
 	cfg := config.Load()
+	logger := config.New()
+
+	slog.SetDefault(logger)
+
+	slog.Info("Server starting...")
 
 	// Start Database Connection
 	conn, err := pgx.Connect(ctx, cfg.DatabaseURL)
 	if err != nil {
-		log.Fatal("Error to initialize database:", err)
+		log.Fatal("Error to initialize database: ", err)
 	}
 	defer conn.Close(ctx)
 
@@ -38,25 +44,16 @@ func main() {
 	customerHandler := handler.NewCustomerHandler(*customerService)
 
 	// Server Config
-	gin.SetMode(gin.DebugMode)
-
-	if cfg.Environment == "release" {
-		gin.SetMode(gin.ReleaseMode)
-	}
-
-	if cfg.Environment == "test" {
-		gin.SetMode(gin.TestMode)
-	}
-
 	r := gin.New()
 
-	// Middleware
+	// Middlewares
 	r.Use(gin.Logger())
+	r.Use(error.ErrorHandler())
 
 	router.HealthCheckRouter(r)
 	router.CustomerRouter(r, *customerHandler)
 
 	if err := r.Run(":8080"); err != nil {
-		log.Fatal("Error to initialize server:", err)
+		log.Fatal("Error to initialize server: ", err)
 	}
 }

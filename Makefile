@@ -5,8 +5,11 @@ endif
 
 DOCKER_MIGRATE := docker run --rm --net=host -v $(shell pwd)/database/migrations:/migrations migrate/migrate
 
-server:
+dev:
 	go run cmd/api/main.go
+
+server:
+	GIN_MODE=release go run cmd/api/main.go
 
 migrateup:
 	$(DOCKER_MIGRATE) -path=/migrations -database "$(DATABASE_URL)" -verbose up
@@ -29,4 +32,4 @@ upcompose:
 dropcompose:
 	docker compose down -v
 
-.PHONY: sqlc server upcompose dropcompose migrateup migratedown create_migration
+.PHONY: sqlc dev server upcompose dropcompose migrateup migratedown create_migration

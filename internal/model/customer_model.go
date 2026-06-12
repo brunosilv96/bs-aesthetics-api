@@ -5,11 +5,11 @@ import (
 )
 
 type CreateCustomer struct {
-	Name      string    `json:"name" validate:"required,min=3"`
-	Email     string    `json:"email" validate:"required,email"`
-	Password  string    `json:"password" validate:"required"`
-	Phone     string    `json:"phone" validate:"required"`
-	BirthDate time.Time `json:"birth_date" time_format:"2006-01-02" binding:"required,lt"`
+	Name      string `json:"name" binding:"required,min=3"`
+	Email     string `json:"email" binding:"required,email"`
+	Password  string `json:"password" binding:"required"`
+	Phone     string `json:"phone" binding:"required"`
+	Birthdate string `json:"birthdate" binding:"required,datetime=2006-01-02"`
 }
 
 type CustomerResponse struct {
@@ -17,7 +17,7 @@ type CustomerResponse struct {
 	Name      string     `json:"name"`
 	Email     string     `json:"email"`
 	Phone     string     `json:"phone"`
-	BirthDate time.Time  `json:"birth_date"`
+	Birthdate string     `json:"birthdate"`
 	CreatedAt time.Time  `json:"created_at"`
 	UpdatedAt *time.Time `json:"updated_at,omitempty"`
 	DeletedAt *time.Time `json:"deleted_at,omitempty"`

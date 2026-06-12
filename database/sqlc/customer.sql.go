@@ -12,16 +12,16 @@ import (
 )
 
 const createCustomer = `-- name: CreateCustomer :one
-INSERT INTO customers (name, email, phone, password, birth_date, created_at)
-VALUES ($1, $2, $3, $4, $5, NOW()) RETURNING id, name, email, phone, password, birth_date, created_at, updated_at, deleted_at
+INSERT INTO customers (name, email, phone, password, birthdate, created_at)
+VALUES ($1, $2, $3, $4, $5, NOW()) RETURNING id, name, email, phone, password, birthdate, created_at, updated_at, deleted_at
 `
 
 type CreateCustomerParams struct {
-	Name      string           `json:"name"`
-	Email     string           `json:"email"`
-	Phone     string           `json:"phone"`
-	Password  string           `json:"password"`
-	BirthDate pgtype.Timestamp `json:"birth_date"`
+	Name      string      `json:"name"`
+	Email     string      `json:"email"`
+	Phone     string      `json:"phone"`
+	Password  string      `json:"password"`
+	Birthdate pgtype.Date `json:"birthdate"`
 }
 
 func (q *Queries) CreateCustomer(ctx context.Context, arg CreateCustomerParams) (Customer, error) {
@@ -30,7 +30,7 @@ func (q *Queries) CreateCustomer(ctx context.Context, arg CreateCustomerParams) 
 		arg.Email,
 		arg.Phone,
 		arg.Password,
-		arg.BirthDate,
+		arg.Birthdate,
 	)
 	var i Customer
 	err := row.Scan(
@@ -39,7 +39,7 @@ func (q *Queries) CreateCustomer(ctx context.Context, arg CreateCustomerParams) 
 		&i.Email,
 		&i.Phone,
 		&i.Password,
-		&i.BirthDate,
+		&i.Birthdate,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
@@ -48,7 +48,7 @@ func (q *Queries) CreateCustomer(ctx context.Context, arg CreateCustomerParams) 
 }
 
 const loadCustomers = `-- name: LoadCustomers :many
-SELECT id, name, email, phone, password, birth_date, created_at, updated_at, deleted_at FROM customers
+SELECT id, name, email, phone, password, birthdate, created_at, updated_at, deleted_at FROM customers
 `
 
 func (q *Queries) LoadCustomers(ctx context.Context) ([]Customer, error) {
@@ -66,7 +66,7 @@ func (q *Queries) LoadCustomers(ctx context.Context) ([]Customer, error) {
 			&i.Email,
 			&i.Phone,
 			&i.Password,
-			&i.BirthDate,
+			&i.Birthdate,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedAt,

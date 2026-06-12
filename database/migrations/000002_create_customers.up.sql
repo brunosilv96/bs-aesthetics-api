@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS customers (
     email VARCHAR(255) NOT NULL,
     phone VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
-    birth_date TIMESTAMP NOT NULL,
+    birthdate DATE NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP,
     deleted_at TIMESTAMP

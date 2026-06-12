@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"time"
 
 	database "github.com/brunosilv96/bs-aesthetics-api/database/sqlc"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/model"
@@ -19,29 +20,27 @@ func NewCustomerService(repository repository.CustomerRepository) *CustomerServi
 	}
 }
 
-func (service CustomerService) Register(ctx context.Context, payload model.CreateCustomer) (model.CustomerResponse, error) {
+func (service CustomerService) Register(ctx context.Context, payload model.CreateCustomer) (database.Customer, error) {
+	birthdate, err := time.Parse("2006-01-02", payload.Birthdate)
+	if err != nil {
+		return database.Customer{}, err
+	}
+
 	dbModel := database.CreateCustomerParams{
 		Name:     payload.Name,
 		Email:    payload.Email,
 		Phone:    payload.Phone,
 		Password: payload.Password,
-		BirthDate: pgtype.Timestamp{
-			Time:  payload.BirthDate,
+		Birthdate: pgtype.Date{
+			Time:  birthdate,
 			Valid: true,
 		},
 	}
 
 	customer, err := service.repository.Save(ctx, dbModel)
 	if err != nil {
-		return model.CustomerResponse{}, err
+		return database.Customer{}, err
 	}
 
-	return model.CustomerResponse{
-		ID:        customer.ID.String(),
-		Name:      customer.Name,
-		Email:     customer.Email,
-		Phone:     customer.Phone,
-		BirthDate: customer.BirthDate.Time,
-		CreatedAt: customer.CreatedAt.Time,
-	}, nil
+	return customer, nil
 }

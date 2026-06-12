@@ -14,7 +14,7 @@ type Customer struct {
 	Email     string           `json:"email"`
 	Phone     string           `json:"phone"`
 	Password  string           `json:"password"`
-	BirthDate pgtype.Timestamp `json:"birth_date"`
+	Birthdate pgtype.Date      `json:"birthdate"`
 	CreatedAt pgtype.Timestamp `json:"created_at"`
 	UpdatedAt pgtype.Timestamp `json:"updated_at"`
 	DeletedAt pgtype.Timestamp `json:"deleted_at"`

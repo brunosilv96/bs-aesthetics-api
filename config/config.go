@@ -20,7 +20,6 @@ func Load() Config {
 
 	cfg := Config{
 		DatabaseURL: getRequired("DATABASE_URL"),
-		Environment: getRequired("ENVIRONMENT"),
 	}
 
 	return cfg
