@@ -45,3 +45,28 @@ func (handler CustomerHandler) Create(c *gin.Context) {
 		CreatedAt: customer.CreatedAt.Time,
 	})
 }
+
+func (handler CustomerHandler) Customers(c *gin.Context) {
+	customers, err := handler.service.List(c)
+	if err != nil {
+		slog.Error("Error on load customer list", "error", err)
+		c.Error(error.ErrBadRequest)
+		return
+	}
+
+	customerList := []model.CustomerResponse{}
+	for _, customer := range customers {
+		customerList = append(customerList, model.CustomerResponse{
+			ID:        customer.ID.String(),
+			Name:      customer.Name,
+			Email:     customer.Email,
+			Phone:     customer.Phone,
+			Birthdate: customer.Birthdate.Time.Format("2006-01-02"),
+			CreatedAt: customer.CreatedAt.Time,
+			UpdatedAt: &customer.UpdatedAt.Time,
+			DeletedAt: &customer.DeletedAt.Time,
+		})
+	}
+
+	c.JSON(http.StatusOK, customerList)
+}

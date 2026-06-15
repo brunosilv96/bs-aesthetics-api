@@ -44,3 +44,12 @@ func (service CustomerService) Register(ctx context.Context, payload model.Creat
 
 	return customer, nil
 }
+
+func (service CustomerService) List(ctx context.Context) ([]database.Customer, error) {
+	customers, err := service.repository.List(ctx)
+	if err != nil {
+		return []database.Customer{}, err
+	}
+
+	return customers, nil
+}

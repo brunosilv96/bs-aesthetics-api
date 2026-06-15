@@ -9,4 +9,5 @@ func CustomerRouter(router *gin.Engine, handler handler.CustomerHandler) {
 	customer := router.Group("/customer")
 
 	customer.POST("/", handler.Create)
+	customer.GET("/", handler.Customers)
 }

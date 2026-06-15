@@ -24,3 +24,12 @@ func (repository CustomerRepository) Save(ctx context.Context, payload database.
 
 	return customer, nil
 }
+
+func (repository CustomerRepository) List(ctx context.Context) ([]database.Customer, error) {
+	customers, err := repository.db.LoadCustomers(ctx)
+	if err != nil {
+		return []database.Customer{}, err
+	}
+
+	return customers, nil
+}
