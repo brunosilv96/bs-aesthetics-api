@@ -6,10 +6,13 @@ package database
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Querier interface {
 	CreateCustomer(ctx context.Context, arg CreateCustomerParams) (Customer, error)
+	FindCustomerByID(ctx context.Context, id pgtype.UUID) (Customer, error)
 	LoadCustomers(ctx context.Context) ([]Customer, error)
 }
 

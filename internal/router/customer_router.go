@@ -10,4 +10,5 @@ func CustomerRouter(router *gin.Engine, handler handler.CustomerHandler) {
 
 	customer.POST("/", handler.Create)
 	customer.GET("/", handler.Customers)
+	customer.GET("/:id", handler.CustomerByID)
 }

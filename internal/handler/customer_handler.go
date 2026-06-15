@@ -1,10 +1,11 @@
 package handler
 
 import (
+	"errors"
 	"log/slog"
 	"net/http"
 
-	"github.com/brunosilv96/bs-aesthetics-api/internal/error"
+	"github.com/brunosilv96/bs-aesthetics-api/internal/exception"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/model"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/service"
 	"github.com/gin-gonic/gin"
@@ -25,14 +26,14 @@ func (handler CustomerHandler) Create(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		slog.Error("Error on bind body payload", "error", err)
-		error.BadRequestErrorHandler(c, err)
+		exception.BadRequestErrorHandler(c, err)
 		return
 	}
 
 	customer, err := handler.service.Register(c, payload)
 	if err != nil {
 		slog.Error("Error on register customer", "error", err)
-		c.Error(error.ErrBadRequest)
+		c.Error(exception.ErrBadRequest)
 		return
 	}
 
@@ -50,7 +51,7 @@ func (handler CustomerHandler) Customers(c *gin.Context) {
 	customers, err := handler.service.List(c)
 	if err != nil {
 		slog.Error("Error on load customer list", "error", err)
-		c.Error(error.ErrBadRequest)
+		c.Error(exception.ErrBadRequest)
 		return
 	}
 
@@ -69,4 +70,34 @@ func (handler CustomerHandler) Customers(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, customerList)
+}
+
+func (handler CustomerHandler) CustomerByID(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		slog.Error("Parameter ID is empty")
+		c.Error(exception.ErrBadRequestID)
+		return
+	}
+
+	customer, err := handler.service.FindByID(c, id)
+	if err != nil {
+		slog.Error("Customer not found", "id", id, "error", err)
+		if errors.Is(err, exception.ErrErrCustomerNotFound) {
+			c.Error(exception.ErrNotFound)
+			return
+		}
+
+		c.Error(exception.ErrBadRequest)
+		return
+	}
+
+	c.JSON(http.StatusOK, model.CustomerResponse{
+		ID:        customer.ID.String(),
+		Name:      customer.Name,
+		Email:     customer.Email,
+		Phone:     customer.Phone,
+		Birthdate: customer.Birthdate.Time.Format("2006-01-02"),
+		CreatedAt: customer.CreatedAt.Time,
+	})
 }

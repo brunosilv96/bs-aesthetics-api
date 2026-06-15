@@ -47,6 +47,27 @@ func (q *Queries) CreateCustomer(ctx context.Context, arg CreateCustomerParams) 
 	return i, err
 }
 
+const findCustomerByID = `-- name: FindCustomerByID :one
+SELECT id, name, email, phone, password, birthdate, created_at, updated_at, deleted_at FROM customers WHERE id = $1
+`
+
+func (q *Queries) FindCustomerByID(ctx context.Context, id pgtype.UUID) (Customer, error) {
+	row := q.db.QueryRow(ctx, findCustomerByID, id)
+	var i Customer
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Email,
+		&i.Phone,
+		&i.Password,
+		&i.Birthdate,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+	)
+	return i, err
+}
+
 const loadCustomers = `-- name: LoadCustomers :many
 SELECT id, name, email, phone, password, birthdate, created_at, updated_at, deleted_at FROM customers
 `

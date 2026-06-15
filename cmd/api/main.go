@@ -7,7 +7,7 @@ import (
 
 	"github.com/brunosilv96/bs-aesthetics-api/config"
 	database "github.com/brunosilv96/bs-aesthetics-api/database/sqlc"
-	error "github.com/brunosilv96/bs-aesthetics-api/internal/error"
+	"github.com/brunosilv96/bs-aesthetics-api/internal/exception"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/handler"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/repository"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/router"
@@ -46,9 +46,11 @@ func main() {
 	// Server Config
 	r := gin.New()
 
+	r.SetTrustedProxies(nil)
+
 	// Middlewares
 	r.Use(gin.Logger())
-	r.Use(error.ErrorHandler())
+	r.Use(exception.ErrorHandler())
 
 	router.HealthCheckRouter(r)
 	router.CustomerRouter(r, *customerHandler)

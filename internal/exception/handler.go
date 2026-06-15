@@ -1,7 +1,8 @@
-package error
+package exception
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -18,9 +19,12 @@ func (e *ApiError) Error() string {
 }
 
 var (
-	ErrNotFound     = &ApiError{Status: 404, Code: "NOT_FOUND", Message: "resource not found"}
-	ErrUnauthorized = &ApiError{Status: 401, Code: "UNAUTHORIZED", Message: "authentication required"}
-	ErrBadRequest   = &ApiError{Status: 400, Code: "BAD_REQUEST", Message: "invalid request"}
+	ErrNotFound            = &ApiError{Status: 404, Code: "NOT_FOUND", Message: "resource not found"}
+	ErrUnauthorized        = &ApiError{Status: 401, Code: "UNAUTHORIZED", Message: "authentication required"}
+	ErrBadRequest          = &ApiError{Status: 400, Code: "BAD_REQUEST", Message: "invalid request"}
+	ErrBadRequestID        = &ApiError{Status: 400, Code: "BAD_REQUEST", Message: "id is required"}
+	ErrParseUUIDFailed     = &ApiError{Status: 400, Code: "BAD_REQUEST", Message: "UUID format is invalid"}
+	ErrErrCustomerNotFound = fmt.Errorf("Customer not found")
 )
 
 func ErrorHandler() gin.HandlerFunc {

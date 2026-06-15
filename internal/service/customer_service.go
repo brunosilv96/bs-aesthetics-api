@@ -5,8 +5,10 @@ import (
 	"time"
 
 	database "github.com/brunosilv96/bs-aesthetics-api/database/sqlc"
+	"github.com/brunosilv96/bs-aesthetics-api/internal/exception"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/model"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/repository"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -52,4 +54,22 @@ func (service CustomerService) List(ctx context.Context) ([]database.Customer, e
 	}
 
 	return customers, nil
+}
+
+func (service CustomerService) FindByID(ctx context.Context, id string) (database.Customer, error) {
+	parsedID, err := uuid.Parse(id)
+	if err != nil {
+		return database.Customer{}, exception.ErrParseUUIDFailed
+	}
+
+	customer, err := service.repository.FindByID(ctx, pgtype.UUID{
+		Bytes: parsedID,
+		Valid: true,
+	})
+	if err != nil {
+		return database.Customer{}, err
+	}
+
+	return customer, nil
+
 }
