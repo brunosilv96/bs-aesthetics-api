@@ -4,6 +4,7 @@ ifneq ($(wildcard .env),)
 endif
 
 DOCKER_MIGRATE := docker run --rm --net=host -v $(shell pwd)/database/migrations:/migrations migrate/migrate
+DOCKER_SQLC := docker run --rm -v $(shell pwd):/src -w /src sqlc/sqlc
 
 dev:
 	go run cmd/api/main.go
@@ -21,10 +22,10 @@ migrateforce:
 	$(DOCKER_MIGRATE) -path=/migrations -database "$(DATABASE_URL)" force $(v)
 
 create_migration:
-	migrate create -ext sql -dir database/migrations -seq $(name)
+	$(DOCKER_MIGRATE) create -ext sql -dir /migrations -seq $(name)
 
 sqlc:
-	sqlc generate
+	$(DOCKER_SQLC) generate
 
 upcompose:
 	docker compose up -d
