@@ -8,8 +8,9 @@ import (
 func CustomerRouter(router *gin.Engine, handler handler.CustomerHandler) {
 	route := router.Group("/customer")
 
-	route.POST("/", handler.Create)
+	route.POST("/", handler.RegisterCustomer)
 	route.GET("/", handler.Customers)
 	route.GET("/:id", handler.CustomerByID)
-	route.DELETE("/:id", handler.Disable)
+	route.DELETE("/:id", handler.DisableCustomer)
+	route.PATCH("/:id", handler.UpdateCustomer)
 }

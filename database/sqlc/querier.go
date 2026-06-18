@@ -15,6 +15,7 @@ type Querier interface {
 	FindCustomerByID(ctx context.Context, id pgtype.UUID) (Customer, error)
 	LoadCustomers(ctx context.Context) ([]Customer, error)
 	SoftDeleteCustomer(ctx context.Context, id pgtype.UUID) error
+	UpdateCustomer(ctx context.Context, arg UpdateCustomerParams) error
 }
 
 var _ Querier = (*Queries)(nil)

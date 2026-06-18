@@ -59,3 +59,12 @@ func (repository CustomerRepository) SoftDelete(ctx context.Context, id pgtype.U
 
 	return nil
 }
+
+func (repository CustomerRepository) Update(ctx context.Context, customer database.UpdateCustomerParams) error {
+	err := repository.db.UpdateCustomer(ctx, customer)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

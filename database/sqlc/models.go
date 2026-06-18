@@ -5,17 +5,19 @@
 package database
 
 import (
+	"time"
+
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Customer struct {
-	ID        pgtype.UUID      `json:"id"`
-	Name      string           `json:"name"`
-	Email     string           `json:"email"`
-	Phone     string           `json:"phone"`
-	Password  string           `json:"password"`
-	Birthdate pgtype.Date      `json:"birthdate"`
-	CreatedAt pgtype.Timestamp `json:"created_at"`
-	UpdatedAt pgtype.Timestamp `json:"updated_at"`
-	DeletedAt pgtype.Timestamp `json:"deleted_at"`
+	ID        pgtype.UUID `json:"id"`
+	Name      string      `json:"name"`
+	Email     string      `json:"email"`
+	Phone     string      `json:"phone"`
+	Password  string      `json:"password"`
+	Birthdate pgtype.Date `json:"birthdate"`
+	CreatedAt time.Time   `json:"created_at"`
+	UpdatedAt *time.Time  `json:"updated_at"`
+	DeletedAt *time.Time  `json:"deleted_at"`
 }

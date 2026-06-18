@@ -11,6 +11,12 @@ type CreateCustomer struct {
 	Phone     string `json:"phone" binding:"required"`
 	Birthdate string `json:"birthdate" binding:"required,datetime=2006-01-02"`
 }
+type UpdateCustomer struct {
+	Name      *string `json:"name,omitempty" validate:"min=3"`
+	Email     *string `json:"email,omitempty" validate:"email"`
+	Phone     *string `json:"phone,omitempty"`
+	Birthdate *string `json:"birthdate,omitempty" validate:"datetime=2006-01-02"`
+}
 
 type CustomerResponse struct {
 	ID        string     `json:"id"`

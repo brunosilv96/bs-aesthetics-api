@@ -96,3 +96,56 @@ func (service CustomerService) Delete(ctx context.Context, id string) error {
 	return nil
 
 }
+
+func (service CustomerService) Update(ctx context.Context, id string, payload model.UpdateCustomer) (database.Customer, error) {
+	parsedID, err := uuid.Parse(id)
+	if err != nil {
+		return database.Customer{}, exception.ErrParseUUIDFailed
+	}
+
+	customer, err := service.repository.FindByID(ctx, pgtype.UUID{
+		Bytes: parsedID,
+		Valid: true,
+	})
+	if err != nil {
+		return database.Customer{}, err
+	}
+
+	if payload.Name != nil {
+		customer.Name = *payload.Name
+	}
+
+	if payload.Email != nil {
+		customer.Email = *payload.Email
+	}
+
+	if payload.Phone != nil {
+		customer.Phone = *payload.Phone
+	}
+
+	if payload.Birthdate != nil {
+		birthdate, err := time.Parse("2006-01-02", *payload.Birthdate)
+		if err != nil {
+			return database.Customer{}, err
+		}
+
+		customer.Birthdate = pgtype.Date{
+			Time:  birthdate,
+			Valid: true,
+		}
+	}
+
+	err = service.repository.Update(ctx, database.UpdateCustomerParams{
+		ID:        customer.ID,
+		Name:      customer.Name,
+		Email:     customer.Email,
+		Phone:     customer.Phone,
+		Birthdate: customer.Birthdate,
+	})
+	if err != nil {
+		return database.Customer{}, err
+	}
+
+	return customer, nil
+
+}

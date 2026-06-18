@@ -11,3 +11,8 @@ SELECT * FROM customers WHERE id = $1;
 
 -- name: SoftDeleteCustomer :exec
 UPDATE customers SET updated_at = NOW(), deleted_at = NOW() WHERE id = $1;
+
+-- name: UpdateCustomer :exec
+UPDATE customers 
+SET name = $2, email = $3, phone = $4, birthdate = $5, updated_at = NOW() 
+WHERE id = $1;

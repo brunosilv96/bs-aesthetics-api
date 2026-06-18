@@ -110,3 +110,28 @@ func (q *Queries) SoftDeleteCustomer(ctx context.Context, id pgtype.UUID) error 
 	_, err := q.db.Exec(ctx, softDeleteCustomer, id)
 	return err
 }
+
+const updateCustomer = `-- name: UpdateCustomer :exec
+UPDATE customers 
+SET name = $2, email = $3, phone = $4, birthdate = $5, updated_at = NOW() 
+WHERE id = $1
+`
+
+type UpdateCustomerParams struct {
+	ID        pgtype.UUID `json:"id"`
+	Name      string      `json:"name"`
+	Email     string      `json:"email"`
+	Phone     string      `json:"phone"`
+	Birthdate pgtype.Date `json:"birthdate"`
+}
+
+func (q *Queries) UpdateCustomer(ctx context.Context, arg UpdateCustomerParams) error {
+	_, err := q.db.Exec(ctx, updateCustomer,
+		arg.ID,
+		arg.Name,
+		arg.Email,
+		arg.Phone,
+		arg.Birthdate,
+	)
+	return err
+}
