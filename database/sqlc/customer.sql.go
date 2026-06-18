@@ -101,3 +101,12 @@ func (q *Queries) LoadCustomers(ctx context.Context) ([]Customer, error) {
 	}
 	return items, nil
 }
+
+const softDeleteCustomer = `-- name: SoftDeleteCustomer :exec
+UPDATE customers SET updated_at = NOW(), deleted_at = NOW() WHERE id = $1
+`
+
+func (q *Queries) SoftDeleteCustomer(ctx context.Context, id pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, softDeleteCustomer, id)
+	return err
+}

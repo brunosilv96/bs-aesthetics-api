@@ -101,3 +101,21 @@ func (handler CustomerHandler) CustomerByID(c *gin.Context) {
 		CreatedAt: customer.CreatedAt.Time,
 	})
 }
+
+func (handler CustomerHandler) Disable(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		slog.Error("Parameter ID is empty")
+		c.Error(exception.ErrBadRequestID)
+		return
+	}
+
+	err := handler.service.Delete(c, id)
+	if err != nil {
+		slog.Error("Failed to disable customer", "id", id, "error", err)
+		c.Error(exception.ErrBadRequest)
+		return
+	}
+
+	c.JSON(http.StatusNoContent, gin.H{})
+}

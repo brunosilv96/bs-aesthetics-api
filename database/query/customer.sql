@@ -8,3 +8,6 @@ VALUES ($1, $2, $3, $4, $5, NOW()) RETURNING *;
 
 -- name: FindCustomerByID :one
 SELECT * FROM customers WHERE id = $1;
+
+-- name: SoftDeleteCustomer :exec
+UPDATE customers SET updated_at = NOW(), deleted_at = NOW() WHERE id = $1;

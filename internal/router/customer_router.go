@@ -6,9 +6,10 @@ import (
 )
 
 func CustomerRouter(router *gin.Engine, handler handler.CustomerHandler) {
-	customer := router.Group("/customer")
+	route := router.Group("/customer")
 
-	customer.POST("/", handler.Create)
-	customer.GET("/", handler.Customers)
-	customer.GET("/:id", handler.CustomerByID)
+	route.POST("/", handler.Create)
+	route.GET("/", handler.Customers)
+	route.GET("/:id", handler.CustomerByID)
+	route.DELETE("/:id", handler.Disable)
 }

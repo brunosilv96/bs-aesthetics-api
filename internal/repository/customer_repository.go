@@ -50,3 +50,12 @@ func (repository CustomerRepository) FindByID(ctx context.Context, id pgtype.UUI
 
 	return customer, nil
 }
+
+func (repository CustomerRepository) SoftDelete(ctx context.Context, id pgtype.UUID) error {
+	err := repository.db.SoftDeleteCustomer(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

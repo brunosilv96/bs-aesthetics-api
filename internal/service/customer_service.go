@@ -73,3 +73,26 @@ func (service CustomerService) FindByID(ctx context.Context, id string) (databas
 	return customer, nil
 
 }
+
+func (service CustomerService) Delete(ctx context.Context, id string) error {
+	parsedID, err := uuid.Parse(id)
+	if err != nil {
+		return exception.ErrParseUUIDFailed
+	}
+
+	customer, err := service.repository.FindByID(ctx, pgtype.UUID{
+		Bytes: parsedID,
+		Valid: true,
+	})
+	if err != nil {
+		return err
+	}
+
+	err = service.repository.SoftDelete(ctx, customer.ID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+}
