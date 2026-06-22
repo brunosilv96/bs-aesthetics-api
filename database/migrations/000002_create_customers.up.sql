@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS customers (
     phone VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
     birthdate DATE NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP,
-    deleted_at TIMESTAMP
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE,
+    deleted_at TIMESTAMP WITH TIME ZONE
 );

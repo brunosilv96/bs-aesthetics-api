@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/brunosilv96/bs-aesthetics-api/config"
 	database "github.com/brunosilv96/bs-aesthetics-api/database/sqlc"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/exception"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/model"
@@ -23,6 +24,11 @@ func NewCustomerService(repository repository.CustomerRepository) *CustomerServi
 }
 
 func (service CustomerService) Register(ctx context.Context, payload model.CreateCustomer) (database.Customer, error) {
+	hashedPassword, err := config.HashPassword(payload.Password)
+	if err != nil {
+		return database.Customer{}, err
+	}
+
 	birthdate, err := time.Parse("2006-01-02", payload.Birthdate)
 	if err != nil {
 		return database.Customer{}, err
@@ -32,7 +38,7 @@ func (service CustomerService) Register(ctx context.Context, payload model.Creat
 		Name:     payload.Name,
 		Email:    payload.Email,
 		Phone:    payload.Phone,
-		Password: payload.Password,
+		Password: hashedPassword,
 		Birthdate: pgtype.Date{
 			Time:  birthdate,
 			Valid: true,
@@ -71,7 +77,6 @@ func (service CustomerService) FindByID(ctx context.Context, id string) (databas
 	}
 
 	return customer, nil
-
 }
 
 func (service CustomerService) Delete(ctx context.Context, id string) error {
@@ -94,7 +99,6 @@ func (service CustomerService) Delete(ctx context.Context, id string) error {
 	}
 
 	return nil
-
 }
 
 func (service CustomerService) Update(ctx context.Context, id string, payload model.UpdateCustomer) (database.Customer, error) {
@@ -147,5 +151,4 @@ func (service CustomerService) Update(ctx context.Context, id string, payload mo
 	}
 
 	return customer, nil
-
 }
