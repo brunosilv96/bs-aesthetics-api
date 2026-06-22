@@ -27,10 +27,16 @@ create_migration:
 sqlc:
 	$(DOCKER_SQLC) generate
 
-upcompose:
+composeup:
 	docker compose up -d
+
+composedown:
+	docker compose up
 
 dropcompose:
 	docker compose down -v
 
-.PHONY: sqlc dev server upcompose dropcompose migrateup migratedown create_migration
+setup:
+	make composeup && make migrateup && make sqlc
+
+.PHONY: sqlc dev server composeup composedown dropcompose migrateup migratedown create_migration setup

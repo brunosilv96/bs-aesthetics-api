@@ -12,6 +12,7 @@ import (
 	"github.com/brunosilv96/bs-aesthetics-api/internal/repository"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/router"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/service"
+	"github.com/brunosilv96/bs-aesthetics-api/pkg"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
 )
@@ -21,7 +22,7 @@ func main() {
 
 	// Load configurations
 	cfg := config.Load()
-	logger := config.New()
+	logger := pkg.New()
 
 	slog.SetDefault(logger)
 

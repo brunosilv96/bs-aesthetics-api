@@ -4,11 +4,11 @@ import (
 	"context"
 	"time"
 
-	"github.com/brunosilv96/bs-aesthetics-api/config"
 	database "github.com/brunosilv96/bs-aesthetics-api/database/sqlc"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/exception"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/model"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/repository"
+	"github.com/brunosilv96/bs-aesthetics-api/pkg"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -24,7 +24,7 @@ func NewCustomerService(repository repository.CustomerRepository) *CustomerServi
 }
 
 func (service CustomerService) Register(ctx context.Context, payload model.CreateCustomer) (database.Customer, error) {
-	hashedPassword, err := config.HashPassword(payload.Password)
+	hashedPassword, err := pkg.HashPassword(payload.Password)
 	if err != nil {
 		return database.Customer{}, err
 	}
