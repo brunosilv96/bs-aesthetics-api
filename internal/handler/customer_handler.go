@@ -84,7 +84,7 @@ func (handler CustomerHandler) CustomerByID(c *gin.Context) {
 	customer, err := handler.service.FindByID(c, id)
 	if err != nil {
 		slog.Error("Customer not found", "id", id, "error", err)
-		if errors.Is(err, exception.ErrErrCustomerNotFound) {
+		if errors.Is(err, exception.ErrSysCustomerNotFound) {
 			c.Error(exception.ErrNotFound)
 			return
 		}

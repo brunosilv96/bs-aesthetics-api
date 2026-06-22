@@ -7,6 +7,7 @@ import (
 
 	"github.com/brunosilv96/bs-aesthetics-api/config"
 	database "github.com/brunosilv96/bs-aesthetics-api/database/sqlc"
+	"github.com/brunosilv96/bs-aesthetics-api/internal/auth"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/exception"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/handler"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/repository"
@@ -25,6 +26,7 @@ func main() {
 	logger := pkg.New()
 
 	slog.SetDefault(logger)
+	tokenService := auth.NewTokenService(cfg.JwtSecret, "bs-aesthetics-api")
 
 	slog.Info("Server starting...")
 
@@ -39,10 +41,13 @@ func main() {
 
 	// Dependency Injection
 	customerRepository := repository.NewCustomerRepository(store)
+	authRepository := repository.NewAuthRepository(store)
 
 	customerService := service.NewCustomerService(*customerRepository)
+	authService := service.NewAuthService(*tokenService, *authRepository, *customerService)
 
 	customerHandler := handler.NewCustomerHandler(*customerService)
+	authHandler := handler.NewAuthHandler(*authService)
 
 	// Server Config
 	r := gin.New()
@@ -55,6 +60,7 @@ func main() {
 
 	router.HealthCheckRouter(r)
 	router.CustomerRouter(r, *customerHandler)
+	router.AuthRouter(r, *authHandler)
 
 	if err := r.Run(":8080"); err != nil {
 		log.Fatal("Error to initialize server: ", err)

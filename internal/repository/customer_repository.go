@@ -42,7 +42,20 @@ func (repository CustomerRepository) FindByID(ctx context.Context, id pgtype.UUI
 	customer, err := repository.db.FindCustomerByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return database.Customer{}, exception.ErrErrCustomerNotFound
+			return database.Customer{}, exception.ErrSysCustomerNotFound
+		}
+
+		return database.Customer{}, err
+	}
+
+	return customer, nil
+}
+
+func (repository CustomerRepository) FindByEmail(ctx context.Context, email string) (database.Customer, error) {
+	customer, err := repository.db.FindCustomerByEmail(ctx, email)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return database.Customer{}, exception.ErrSysCustomerNotFound
 		}
 
 		return database.Customer{}, err

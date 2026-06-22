@@ -12,8 +12,10 @@ import (
 
 type Querier interface {
 	CreateCustomer(ctx context.Context, arg CreateCustomerParams) (Customer, error)
+	FindCustomerByEmail(ctx context.Context, email string) (Customer, error)
 	FindCustomerByID(ctx context.Context, id pgtype.UUID) (Customer, error)
 	LoadCustomers(ctx context.Context) ([]Customer, error)
+	SaveRefreshToken(ctx context.Context, arg SaveRefreshTokenParams) (RefreshToken, error)
 	SoftDeleteCustomer(ctx context.Context, id pgtype.UUID) error
 	UpdateCustomer(ctx context.Context, arg UpdateCustomerParams) error
 }

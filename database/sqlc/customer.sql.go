@@ -47,6 +47,27 @@ func (q *Queries) CreateCustomer(ctx context.Context, arg CreateCustomerParams) 
 	return i, err
 }
 
+const findCustomerByEmail = `-- name: FindCustomerByEmail :one
+SELECT id, name, email, phone, password, birthdate, created_at, updated_at, deleted_at FROM customers WHERE email = $1
+`
+
+func (q *Queries) FindCustomerByEmail(ctx context.Context, email string) (Customer, error) {
+	row := q.db.QueryRow(ctx, findCustomerByEmail, email)
+	var i Customer
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Email,
+		&i.Phone,
+		&i.Password,
+		&i.Birthdate,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+	)
+	return i, err
+}
+
 const findCustomerByID = `-- name: FindCustomerByID :one
 SELECT id, name, email, phone, password, birthdate, created_at, updated_at, deleted_at FROM customers WHERE id = $1
 `
@@ -103,7 +124,7 @@ func (q *Queries) LoadCustomers(ctx context.Context) ([]Customer, error) {
 }
 
 const softDeleteCustomer = `-- name: SoftDeleteCustomer :exec
-UPDATE customers SET updated_at = NOW(), deleted_at = NOW() WHERE id = $1
+UPDATE customers SET deleted_at = NOW() WHERE id = $1
 `
 
 func (q *Queries) SoftDeleteCustomer(ctx context.Context, id pgtype.UUID) error {

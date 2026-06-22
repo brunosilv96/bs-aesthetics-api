@@ -20,11 +20,14 @@ func (e *ApiError) Error() string {
 
 var (
 	ErrNotFound            = &ApiError{Status: 404, Code: "NOT_FOUND", Message: "resource not found"}
+	ErrCustomerNotFound    = &ApiError{Status: 404, Code: "NOT_FOUND", Message: "customer not found"}
 	ErrUnauthorized        = &ApiError{Status: 401, Code: "UNAUTHORIZED", Message: "authentication required"}
 	ErrBadRequest          = &ApiError{Status: 400, Code: "BAD_REQUEST", Message: "invalid request"}
 	ErrBadRequestID        = &ApiError{Status: 400, Code: "BAD_REQUEST", Message: "id is required"}
 	ErrParseUUIDFailed     = &ApiError{Status: 400, Code: "BAD_REQUEST", Message: "UUID format is invalid"}
-	ErrErrCustomerNotFound = fmt.Errorf("Customer not found")
+	ErrInvalidPassword     = &ApiError{Status: 400, Code: "BAD_REQUEST", Message: "Password is invalid"}
+	ErrSysCustomerNotFound = fmt.Errorf("Customer not found")
+	ErrSysInvalidPassword  = fmt.Errorf("Password is invalid")
 )
 
 func ErrorHandler() gin.HandlerFunc {

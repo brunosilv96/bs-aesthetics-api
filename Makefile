@@ -6,11 +6,16 @@ endif
 DOCKER_MIGRATE := docker run --rm --net=host -v $(shell pwd)/database/migrations:/migrations migrate/migrate
 DOCKER_SQLC := docker run --rm -v $(shell pwd):/src -w /src sqlc/sqlc
 
+# --------------------------------------------------------------------------------------------------------------------
+setup:
+	make composeup && make migrateup && make sqlc
+
 dev:
 	go run cmd/api/main.go
 
 server:
 	GIN_MODE=release go run cmd/api/main.go
+# --------------------------------------------------------------------------------------------------------------------
 
 migrateup:
 	$(DOCKER_MIGRATE) -path=/migrations -database "$(DATABASE_URL)" -verbose up
@@ -31,12 +36,9 @@ composeup:
 	docker compose up -d
 
 composedown:
-	docker compose up
+	docker compose down
 
 dropcompose:
 	docker compose down -v
-
-setup:
-	make composeup && make migrateup && make sqlc
 
 .PHONY: sqlc dev server composeup composedown dropcompose migrateup migratedown create_migration setup
