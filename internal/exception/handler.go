@@ -26,8 +26,17 @@ var (
 	ErrBadRequestID        = &ApiError{Status: 400, Code: "BAD_REQUEST", Message: "id is required"}
 	ErrParseUUIDFailed     = &ApiError{Status: 400, Code: "BAD_REQUEST", Message: "UUID format is invalid"}
 	ErrInvalidPassword     = &ApiError{Status: 400, Code: "BAD_REQUEST", Message: "Password is invalid"}
-	ErrSysCustomerNotFound = fmt.Errorf("Customer not found")
-	ErrSysInvalidPassword  = fmt.Errorf("Password is invalid")
+	ErrInvalidBearerToken  = &ApiError{Status: 401, Code: "UNAUTHORIZED", Message: "Bearer Token format is invalid"}
+	ErrExpiredBearerToken  = &ApiError{Status: 401, Code: "UNAUTHORIZED", Message: "Token expired or invalid"}
+	ErrInvalidPayloadToken = &ApiError{Status: 401, Code: "UNAUTHORIZED", Message: "Payload token is invalid"}
+)
+
+var (
+	ErrSysExpiredOrInvalidBearerToken = fmt.Errorf("Token expired or invalid")
+	ErrSysTokenAssigningInvalid       = fmt.Errorf("Token assigning is invalid")
+	ErrSysInvalidPayloadToken         = fmt.Errorf("Payload token is invalid")
+	ErrSysCustomerNotFound            = fmt.Errorf("Customer not found")
+	ErrSysInvalidPassword             = fmt.Errorf("Password is invalid")
 )
 
 func ErrorHandler() gin.HandlerFunc {

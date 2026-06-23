@@ -10,6 +10,7 @@ import (
 	"github.com/brunosilv96/bs-aesthetics-api/internal/auth"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/exception"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/handler"
+	"github.com/brunosilv96/bs-aesthetics-api/internal/middleware"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/repository"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/router"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/service"
@@ -57,9 +58,10 @@ func main() {
 	// Middlewares
 	r.Use(gin.Logger())
 	r.Use(exception.ErrorHandler())
+	authMiddleware := middleware.NewAccessTokenMiddleware(*tokenService)
 
 	router.HealthCheckRouter(r)
-	router.CustomerRouter(r, *customerHandler)
+	router.CustomerRouter(r, *customerHandler, *authMiddleware)
 	router.AuthRouter(r, *authHandler)
 
 	if err := r.Run(":8080"); err != nil {

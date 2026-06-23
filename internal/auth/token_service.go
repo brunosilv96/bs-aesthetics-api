@@ -5,8 +5,10 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"log/slog"
 	"time"
 
+	"github.com/brunosilv96/bs-aesthetics-api/internal/exception"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -16,16 +18,16 @@ type TokenPair struct {
 }
 
 type TokenService struct {
-	jwtSecret      []byte
-	issuer         string
-	accessDuration time.Duration
+	jwtSecret           []byte
+	issuer              string
+	accessTokenDuration time.Duration
 }
 
 func NewTokenService(secret, issuer string) *TokenService {
 	return &TokenService{
-		jwtSecret:      []byte(secret),
-		issuer:         issuer,
-		accessDuration: 15 * time.Minute, // Time default for access token
+		jwtSecret:           []byte(secret),
+		issuer:              issuer,
+		accessTokenDuration: 15 * time.Minute, // Time default for access token
 	}
 }
 
@@ -35,17 +37,17 @@ func (service *TokenService) GenerateToken(customerID, role string) (*TokenPair,
 		CustomerID: customerID,
 		Role:       role,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(service.accessDuration)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(service.accessTokenDuration)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			Issuer:    service.issuer,
 		},
 	}
 
 	// Access Token
-	jwtAccessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	// Access Token Assigned
-	signedAccessToken, err := jwtAccessToken.SignedString(service.jwtSecret)
+	signedAccessToken, err := accessToken.SignedString(service.jwtSecret)
 	if err != nil {
 		return nil, fmt.Errorf("error to assign access token: %w", err)
 	}
@@ -57,11 +59,11 @@ func (service *TokenService) GenerateToken(customerID, role string) (*TokenPair,
 		return nil, fmt.Errorf("error to generate random string: %w", err)
 	}
 
-	refreshTokenString := hex.EncodeToString(b)
+	refreshToken := hex.EncodeToString(b)
 
 	return &TokenPair{
 		AccessToken:  signedAccessToken,
-		RefreshToken: refreshTokenString,
+		RefreshToken: refreshToken,
 	}, nil
 }
 
@@ -69,4 +71,29 @@ func (service *TokenService) HashRefreshToken(token string) string {
 	hash := sha256.Sum256([]byte(token))
 
 	return hex.EncodeToString(hash[:])
+}
+
+func (service *TokenService) ValidateAccessToken(encryptedToken string) (*CustomClaim, error) {
+	token, err := jwt.Parse(encryptedToken, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, exception.ErrSysTokenAssigningInvalid
+		}
+
+		return []byte(service.jwtSecret), nil
+	})
+	if err != nil {
+		slog.Error("failed to parse bearer token", "error", err)
+		return nil, exception.ErrSysExpiredOrInvalidBearerToken
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok || !token.Valid {
+		slog.Error("bearer token is invalid or not match with custom claim", "error", err)
+		return nil, exception.ErrSysExpiredOrInvalidBearerToken
+	}
+
+	return &CustomClaim{
+		CustomerID: claims["customer_id"].(string),
+		Role:       claims["role"].(string),
+	}, nil
 }
