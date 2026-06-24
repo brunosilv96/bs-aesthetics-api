@@ -1,7 +1,9 @@
 {
     "cSpell.words": [
         "brunosilv",
-        "github"
+        "constrants",
+        "github",
+        "registred"
     ],
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "golang.go"

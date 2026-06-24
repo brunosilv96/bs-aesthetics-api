@@ -3,8 +3,8 @@
 SELECT * FROM customers;
 
 -- name: CreateCustomer :one
-INSERT INTO customers (name, email, phone, password, birthdate, created_at)
-VALUES ($1, $2, $3, $4, $5, NOW()) RETURNING *;
+INSERT INTO customers (name, email, phone, password, birthdate, role, created_at)
+VALUES ($1, $2, $3, $4, $5, $6, NOW()) RETURNING *;
 
 -- name: FindCustomerByID :one
 SELECT * FROM customers WHERE id = $1;
@@ -17,5 +17,5 @@ UPDATE customers SET deleted_at = NOW() WHERE id = $1;
 
 -- name: UpdateCustomer :exec
 UPDATE customers 
-SET name = $2, email = $3, phone = $4, birthdate = $5, updated_at = NOW() 
+SET name = $2, email = $3, phone = $4, birthdate = $5, role = $6, updated_at = NOW() 
 WHERE id = $1;

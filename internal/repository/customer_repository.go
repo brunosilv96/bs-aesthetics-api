@@ -8,6 +8,7 @@ import (
 	database "github.com/brunosilv96/bs-aesthetics-api/database/sqlc"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/exception"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -24,6 +25,15 @@ func NewCustomerRepository(db database.Querier) *CustomerRepository {
 func (repository CustomerRepository) Save(ctx context.Context, payload database.CreateCustomerParams) (database.Customer, error) {
 	customer, err := repository.db.CreateCustomer(ctx, payload)
 	if err != nil {
+		var pgErr *pgconn.PgError
+
+		if errors.As(err, &pgErr) {
+			if pgErr.Code == "23505" {
+				slog.Error("[BD] error on save customer, constrants violation", "pgx error:", err)
+				return database.Customer{}, exception.ErrSysCustomerAlreadyRegistered
+			}
+		}
+
 		slog.Error("[BD] error on save customer in database", "pgx error:", err)
 		return database.Customer{}, exception.ErrSysSaveCustomer
 	}

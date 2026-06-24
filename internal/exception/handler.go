@@ -18,28 +18,38 @@ func (e *ApiError) Error() string {
 	return e.Message
 }
 
+// HTTP Mapping Errors
 var (
-	ErrNotFound            = &ApiError{Status: 404, Code: "NOT_FOUND", Message: "resource not found"}
-	ErrCustomerNotFound    = &ApiError{Status: 404, Code: "NOT_FOUND", Message: "customer not found"}
-	ErrBadRequest          = &ApiError{Status: 400, Code: "BAD_REQUEST", Message: "invalid request"}
-	ErrBadRequestID        = &ApiError{Status: 400, Code: "BAD_REQUEST", Message: "id is required"}
-	ErrParseUUIDFailed     = &ApiError{Status: 400, Code: "BAD_REQUEST", Message: "UUID format is invalid"}
-	ErrInvalidPassword     = &ApiError{Status: 400, Code: "BAD_REQUEST", Message: "password is invalid"}
-	ErrUnauthorized        = &ApiError{Status: 401, Code: "UNAUTHORIZED", Message: "authentication required"}
-	ErrInvalidBearerToken  = &ApiError{Status: 401, Code: "UNAUTHORIZED", Message: "bearer Token format is invalid"}
-	ErrExpiredBearerToken  = &ApiError{Status: 401, Code: "UNAUTHORIZED", Message: "token expired or invalid"}
-	ErrInvalidPayloadToken = &ApiError{Status: 401, Code: "UNAUTHORIZED", Message: "payload token is invalid"}
+	ErrNotFound                  = &ApiError{Status: 404, Code: "NOT_FOUND", Message: "resource not found"}
+	ErrCustomerNotFound          = &ApiError{Status: 404, Code: "NOT_FOUND", Message: "customer not found"}
+	ErrBadRequest                = &ApiError{Status: 400, Code: "BAD_REQUEST", Message: "invalid request"}
+	ErrCustomerAlreadyRegistered = &ApiError{Status: 400, Code: "BAD_REQUEST", Message: "customer already registered with the email provided"}
+	ErrBadRequestID              = &ApiError{Status: 400, Code: "BAD_REQUEST", Message: "id is required"}
+	ErrParseUUIDFailed           = &ApiError{Status: 400, Code: "BAD_REQUEST", Message: "UUID format is invalid"}
+	ErrInvalidPassword           = &ApiError{Status: 400, Code: "BAD_REQUEST", Message: "password is invalid"}
+	ErrRefreshTokenBadRequest    = &ApiError{Status: 401, Code: "UNAUTHORIZED", Message: "refresh token is not valid"}
+	ErrRefreshTokenExpired       = &ApiError{Status: 401, Code: "UNAUTHORIZED", Message: "refresh token has expired"}
+	ErrUnauthorized              = &ApiError{Status: 401, Code: "UNAUTHORIZED", Message: "authentication required"}
+	ErrInvalidBearerToken        = &ApiError{Status: 401, Code: "UNAUTHORIZED", Message: "bearer Token format is invalid"}
+	ErrExpiredBearerToken        = &ApiError{Status: 401, Code: "UNAUTHORIZED", Message: "token expired or invalid"}
+	ErrInvalidPayloadToken       = &ApiError{Status: 401, Code: "UNAUTHORIZED", Message: "payload token is invalid"}
 )
 
+// System Mapping Errors
 var (
 	ErrSysExpiredOrInvalidBearerToken = fmt.Errorf("token expired or invalid")
 	ErrSysTokenAssigningInvalid       = fmt.Errorf("token assigning is invalid")
 	ErrSysAssigningToken              = fmt.Errorf("error on assigning token")
 	ErrSysInvalidPayloadToken         = fmt.Errorf("payload token is invalid")
 	ErrSysCustomerNotFound            = fmt.Errorf("customer not found")
+	ErrSysCustomerAlreadyRegistered   = fmt.Errorf("customer already registered")
 	ErrSysInvalidPassword             = fmt.Errorf("password is invalid")
 	ErrSysHashPassword                = fmt.Errorf("error on hash password")
 	ErrSysSaveRefreshToken            = fmt.Errorf("error on save refresh token")
+	ErrSysFindRefreshToken            = fmt.Errorf("error on find refresh token")
+	ErrSysInvalidRefreshToken         = fmt.Errorf("error on invalid refresh token")
+	ErrSysRefreshTokenNotFound        = fmt.Errorf("hashed refresh token not found")
+	ErrSysRefreshTokenExpired         = fmt.Errorf("refresh token has expired")
 	ErrSysGeneratePairTokens          = fmt.Errorf("error on generate pair tokens")
 	ErrSysGenerateRandomDates         = fmt.Errorf("error on generate random dates")
 	ErrSysParseTimeDate               = fmt.Errorf("error on parse date to time.Time")

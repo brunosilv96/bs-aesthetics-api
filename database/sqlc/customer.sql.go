@@ -12,8 +12,8 @@ import (
 )
 
 const createCustomer = `-- name: CreateCustomer :one
-INSERT INTO customers (name, email, phone, password, birthdate, created_at)
-VALUES ($1, $2, $3, $4, $5, NOW()) RETURNING id, name, email, phone, password, birthdate, created_at, updated_at, deleted_at
+INSERT INTO customers (name, email, phone, password, birthdate, role, created_at)
+VALUES ($1, $2, $3, $4, $5, $6, NOW()) RETURNING id, name, email, phone, password, birthdate, role, created_at, updated_at, deleted_at
 `
 
 type CreateCustomerParams struct {
@@ -22,6 +22,7 @@ type CreateCustomerParams struct {
 	Phone     string      `json:"phone"`
 	Password  string      `json:"password"`
 	Birthdate pgtype.Date `json:"birthdate"`
+	Role      string      `json:"role"`
 }
 
 func (q *Queries) CreateCustomer(ctx context.Context, arg CreateCustomerParams) (Customer, error) {
@@ -31,6 +32,7 @@ func (q *Queries) CreateCustomer(ctx context.Context, arg CreateCustomerParams) 
 		arg.Phone,
 		arg.Password,
 		arg.Birthdate,
+		arg.Role,
 	)
 	var i Customer
 	err := row.Scan(
@@ -40,6 +42,7 @@ func (q *Queries) CreateCustomer(ctx context.Context, arg CreateCustomerParams) 
 		&i.Phone,
 		&i.Password,
 		&i.Birthdate,
+		&i.Role,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
@@ -48,7 +51,7 @@ func (q *Queries) CreateCustomer(ctx context.Context, arg CreateCustomerParams) 
 }
 
 const findCustomerByEmail = `-- name: FindCustomerByEmail :one
-SELECT id, name, email, phone, password, birthdate, created_at, updated_at, deleted_at FROM customers WHERE email = $1
+SELECT id, name, email, phone, password, birthdate, role, created_at, updated_at, deleted_at FROM customers WHERE email = $1
 `
 
 func (q *Queries) FindCustomerByEmail(ctx context.Context, email string) (Customer, error) {
@@ -61,6 +64,7 @@ func (q *Queries) FindCustomerByEmail(ctx context.Context, email string) (Custom
 		&i.Phone,
 		&i.Password,
 		&i.Birthdate,
+		&i.Role,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
@@ -69,7 +73,7 @@ func (q *Queries) FindCustomerByEmail(ctx context.Context, email string) (Custom
 }
 
 const findCustomerByID = `-- name: FindCustomerByID :one
-SELECT id, name, email, phone, password, birthdate, created_at, updated_at, deleted_at FROM customers WHERE id = $1
+SELECT id, name, email, phone, password, birthdate, role, created_at, updated_at, deleted_at FROM customers WHERE id = $1
 `
 
 func (q *Queries) FindCustomerByID(ctx context.Context, id pgtype.UUID) (Customer, error) {
@@ -82,6 +86,7 @@ func (q *Queries) FindCustomerByID(ctx context.Context, id pgtype.UUID) (Custome
 		&i.Phone,
 		&i.Password,
 		&i.Birthdate,
+		&i.Role,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
@@ -90,7 +95,7 @@ func (q *Queries) FindCustomerByID(ctx context.Context, id pgtype.UUID) (Custome
 }
 
 const loadCustomers = `-- name: LoadCustomers :many
-SELECT id, name, email, phone, password, birthdate, created_at, updated_at, deleted_at FROM customers
+SELECT id, name, email, phone, password, birthdate, role, created_at, updated_at, deleted_at FROM customers
 `
 
 func (q *Queries) LoadCustomers(ctx context.Context) ([]Customer, error) {
@@ -109,6 +114,7 @@ func (q *Queries) LoadCustomers(ctx context.Context) ([]Customer, error) {
 			&i.Phone,
 			&i.Password,
 			&i.Birthdate,
+			&i.Role,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedAt,
@@ -134,7 +140,7 @@ func (q *Queries) SoftDeleteCustomer(ctx context.Context, id pgtype.UUID) error 
 
 const updateCustomer = `-- name: UpdateCustomer :exec
 UPDATE customers 
-SET name = $2, email = $3, phone = $4, birthdate = $5, updated_at = NOW() 
+SET name = $2, email = $3, phone = $4, birthdate = $5, role = $6, updated_at = NOW() 
 WHERE id = $1
 `
 
@@ -144,6 +150,7 @@ type UpdateCustomerParams struct {
 	Email     string      `json:"email"`
 	Phone     string      `json:"phone"`
 	Birthdate pgtype.Date `json:"birthdate"`
+	Role      string      `json:"role"`
 }
 
 func (q *Queries) UpdateCustomer(ctx context.Context, arg UpdateCustomerParams) error {
@@ -153,6 +160,7 @@ func (q *Queries) UpdateCustomer(ctx context.Context, arg UpdateCustomerParams) 
 		arg.Email,
 		arg.Phone,
 		arg.Birthdate,
+		arg.Role,
 	)
 	return err
 }

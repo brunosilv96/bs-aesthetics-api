@@ -10,6 +10,34 @@ import (
 	"time"
 )
 
+const findRefreshToken = `-- name: FindRefreshToken :one
+SELECT id, customer_id, token_hash, expires_at, created_at FROM refresh_tokens WHERE token_hash = $1
+`
+
+func (q *Queries) FindRefreshToken(ctx context.Context, tokenHash string) (RefreshToken, error) {
+	row := q.db.QueryRow(ctx, findRefreshToken, tokenHash)
+	var i RefreshToken
+	err := row.Scan(
+		&i.ID,
+		&i.CustomerID,
+		&i.TokenHash,
+		&i.ExpiresAt,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const invalidRefreshToken = `-- name: InvalidRefreshToken :exec
+UPDATE refresh_tokens 
+SET expires_at = NOW() 
+WHERE token_hash = $1
+`
+
+func (q *Queries) InvalidRefreshToken(ctx context.Context, tokenHash string) error {
+	_, err := q.db.Exec(ctx, invalidRefreshToken, tokenHash)
+	return err
+}
+
 const saveRefreshToken = `-- name: SaveRefreshToken :one
 INSERT INTO refresh_tokens (customer_id, token_hash, expires_at, created_at)
 VALUES ($1, $2, $3, NOW()) RETURNING id, customer_id, token_hash, expires_at, created_at

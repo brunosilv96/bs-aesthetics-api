@@ -26,14 +26,20 @@ func (handler CustomerHandler) RegisterCustomer(c *gin.Context) {
 	var payload model.CreateCustomer
 
 	if err := c.ShouldBindJSON(&payload); err != nil {
-		slog.Error("Error on bind body payload", "error", err)
+		slog.Error("error on bind body payload", "error", err)
 		exception.BadRequestErrorHandler(c, err)
 		return
 	}
 
 	customer, err := handler.service.Register(c, payload)
 	if err != nil {
-		slog.Error("Error on register customer", "error", err)
+		if errors.Is(err, exception.ErrSysCustomerAlreadyRegistered) {
+			slog.Error("error on register customer, email already registered", "error", err)
+			c.Error(exception.ErrCustomerAlreadyRegistered)
+			return
+		}
+
+		slog.Error("error on register customer", "error", err)
 		c.Error(exception.ErrBadRequest)
 		return
 	}
@@ -44,6 +50,7 @@ func (handler CustomerHandler) RegisterCustomer(c *gin.Context) {
 		Email:     customer.Email,
 		Phone:     customer.Phone,
 		Birthdate: customer.Birthdate.Time.Format("2006-01-02"),
+		Role:      customer.Role,
 		CreatedAt: customer.CreatedAt,
 	})
 }
@@ -64,6 +71,7 @@ func (handler CustomerHandler) Customers(c *gin.Context) {
 			Email:     customer.Email,
 			Phone:     customer.Phone,
 			Birthdate: customer.Birthdate.Time.Format("2006-01-02"),
+			Role:      customer.Role,
 			CreatedAt: customer.CreatedAt,
 			UpdatedAt: customer.UpdatedAt,
 			DeletedAt: customer.DeletedAt,
@@ -99,6 +107,7 @@ func (handler CustomerHandler) CustomerByID(c *gin.Context) {
 		Email:     customer.Email,
 		Phone:     customer.Phone,
 		Birthdate: customer.Birthdate.Time.Format("2006-01-02"),
+		Role:      customer.Role,
 		CreatedAt: customer.CreatedAt,
 		UpdatedAt: customer.UpdatedAt,
 		DeletedAt: customer.DeletedAt,
@@ -108,14 +117,14 @@ func (handler CustomerHandler) CustomerByID(c *gin.Context) {
 func (handler CustomerHandler) DisableCustomer(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
-		slog.Error("Parameter ID is empty")
+		slog.Error("parameter ID is empty")
 		c.Error(exception.ErrBadRequestID)
 		return
 	}
 
 	err := handler.service.Delete(c, id)
 	if err != nil {
-		slog.Error("Failed to disable customer", "id", id, "error", err)
+		slog.Error("failed to disable customer", "id", id, "error", err)
 		c.Error(exception.ErrBadRequest)
 		return
 	}
@@ -126,7 +135,7 @@ func (handler CustomerHandler) DisableCustomer(c *gin.Context) {
 func (handler CustomerHandler) UpdateCustomer(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
-		slog.Error("Parameter ID is empty")
+		slog.Error("parameter ID is empty")
 		c.Error(exception.ErrBadRequestID)
 		return
 	}
@@ -134,7 +143,7 @@ func (handler CustomerHandler) UpdateCustomer(c *gin.Context) {
 	var payload model.UpdateCustomer
 
 	if err := c.ShouldBindJSON(&payload); err != nil {
-		slog.Error("Error on bind body payload", "error", err)
+		slog.Error("error on bind body payload", "error", err)
 		exception.BadRequestErrorHandler(c, err)
 		return
 	}
@@ -142,7 +151,7 @@ func (handler CustomerHandler) UpdateCustomer(c *gin.Context) {
 	if payload.Birthdate != nil {
 		_, err := time.Parse("2006-01-02", *payload.Birthdate)
 		if err != nil {
-			slog.Error("Error on bind body payload", "error", err)
+			slog.Error("error on bind body payload", "error", err)
 			exception.BadRequestErrorHandler(c, err)
 			return
 		}
@@ -150,7 +159,7 @@ func (handler CustomerHandler) UpdateCustomer(c *gin.Context) {
 
 	customer, err := handler.service.Update(c, id, payload)
 	if err != nil {
-		slog.Error("Failed to update customer", "id", id, "error", err)
+		slog.Error("failed to update customer", "id", id, "error", err)
 		c.Error(exception.ErrBadRequest)
 		return
 	}
@@ -161,6 +170,7 @@ func (handler CustomerHandler) UpdateCustomer(c *gin.Context) {
 		Email:     customer.Email,
 		Phone:     customer.Phone,
 		Birthdate: customer.Birthdate.Time.String(),
+		Role:      customer.Role,
 		CreatedAt: customer.CreatedAt,
 		UpdatedAt: customer.UpdatedAt,
 		DeletedAt: customer.DeletedAt,

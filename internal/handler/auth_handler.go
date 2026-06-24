@@ -25,7 +25,7 @@ func (handler *AuthHandler) Login(c *gin.Context) {
 	var payload model.AuthRequest
 
 	if err := c.ShouldBindJSON(&payload); err != nil {
-		slog.Error("Error on bind body payload", "error", err)
+		slog.Error("error on bind body payload", "error", err)
 		exception.BadRequestErrorHandler(c, err)
 		return
 	}
@@ -33,18 +33,18 @@ func (handler *AuthHandler) Login(c *gin.Context) {
 	tokens, err := handler.authService.AuthenticateCustomer(c, payload)
 	if err != nil {
 		if errors.Is(err, exception.ErrSysCustomerNotFound) {
-			slog.Error("Customer not found", "email", payload.Email, "error", err)
+			slog.Error("customer not found", "email", payload.Email, "error", err)
 			c.Error(exception.ErrCustomerNotFound)
 			return
 		}
 
 		if errors.Is(err, exception.ErrSysInvalidPassword) {
-			slog.Error("Customer password is invalid", "email", payload.Email, "error", err)
+			slog.Error("customer password is invalid", "email", payload.Email, "error", err)
 			c.Error(exception.ErrInvalidPassword)
 			return
 		}
 
-		slog.Error("Error on generate access for customer", "error", err)
+		slog.Error("error on generate access for customer", "error", err)
 		c.Error(exception.ErrBadRequest)
 		return
 	}
@@ -60,7 +60,53 @@ func (handler *AuthHandler) Login(c *gin.Context) {
 	)
 
 	// For extra CSRF protection if your front end is web-based:
-	// c.Header("SameSite", "Strict")
+	c.Header("SameSite", "Strict")
+
+	c.JSON(http.StatusOK, model.TokenResponse{
+		CustomerID:  tokens.CustomerID,
+		AccessToken: tokens.AccessToken,
+	})
+}
+
+func (handler *AuthHandler) RefreshToken(c *gin.Context) {
+	refreshToken, err := c.Cookie("refresh_token")
+	if err != nil {
+		slog.Error("error recovery refresh token cookie", "error", err)
+		c.Error(exception.ErrRefreshTokenBadRequest)
+		return
+	}
+
+	tokens, err := handler.authService.RotationRefreshToken(c, refreshToken)
+	if err != nil {
+		if errors.Is(err, exception.ErrSysRefreshTokenNotFound) {
+			slog.Error("refresh token not found", "error", err)
+			c.Error(exception.ErrRefreshTokenBadRequest)
+			return
+		}
+
+		if errors.Is(err, exception.ErrSysRefreshTokenExpired) {
+			slog.Error("refresh token has expired", "error", err)
+			c.Error(exception.ErrRefreshTokenExpired)
+			return
+		}
+
+		slog.Error("error rotate refresh token", "error", err)
+		c.Error(exception.ErrRefreshTokenBadRequest)
+		return
+	}
+
+	c.SetCookie(
+		"refresh_token",     // Name
+		tokens.RefreshToken, // Value
+		7*24*60*60,          // Lifespan (7 days)
+		"/",                 // Path (all api)
+		"",                  // Domain (empty use the current API domain)
+		true,                // Secure (true == HTTPS)
+		true,                // HTTP Only (true == prevents javascript from reading)
+	)
+
+	// For extra CSRF protection if your front end is web-based:
+	c.Header("SameSite", "Strict")
 
 	c.JSON(http.StatusOK, model.TokenResponse{
 		CustomerID:  tokens.CustomerID,

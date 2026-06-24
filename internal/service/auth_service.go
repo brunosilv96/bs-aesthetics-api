@@ -13,14 +13,14 @@ import (
 
 type AuthService struct {
 	authService     auth.TokenService
-	AuthRepository  repository.AuthRepository
+	authRepository  repository.AuthRepository
 	customerService CustomerService
 }
 
 func NewAuthService(tokenService auth.TokenService, authRepository repository.AuthRepository, customerService CustomerService) *AuthService {
 	return &AuthService{
 		authService:     tokenService,
-		AuthRepository:  authRepository,
+		authRepository:  authRepository,
 		customerService: customerService,
 	}
 }
@@ -43,7 +43,7 @@ func (service *AuthService) AuthenticateCustomer(ctx context.Context, payload mo
 
 	hashedToken := service.authService.HashRefreshToken(tokens.RefreshToken)
 
-	savedToken, err := service.AuthRepository.SaveRefreshToken(ctx, database.SaveRefreshTokenParams{
+	savedToken, err := service.authRepository.SaveRefreshToken(ctx, database.SaveRefreshTokenParams{
 		CustomerID: customer.ID.String(),
 		TokenHash:  hashedToken,
 		ExpiresAt:  time.Now().Add(7 * 24 * time.Hour), // Valid for 1 week
@@ -56,5 +56,49 @@ func (service *AuthService) AuthenticateCustomer(ctx context.Context, payload mo
 		CustomerID:   savedToken.CustomerID,
 		AccessToken:  tokens.AccessToken,
 		RefreshToken: tokens.RefreshToken,
+	}, nil
+}
+
+func (service *AuthService) RotationRefreshToken(ctx context.Context, token string) (model.TokensOutput, error) {
+	hashedToken := service.authService.HashRefreshToken(token)
+
+	foundToken, err := service.authRepository.LoadRefreshToken(ctx, hashedToken)
+	if err != nil {
+		return model.TokensOutput{}, err
+	}
+
+	if hashedToken != foundToken.TokenHash {
+		return model.TokensOutput{}, exception.ErrSysRefreshTokenNotFound
+	}
+
+	if time.Now().After(foundToken.ExpiresAt) {
+		return model.TokensOutput{}, exception.ErrSysRefreshTokenExpired
+	}
+
+	newPairToken, err := service.authService.GenerateToken(foundToken.CustomerID, "customer")
+	if err != nil {
+		return model.TokensOutput{}, err
+	}
+
+	hashedRefreshToken := service.authService.HashRefreshToken(newPairToken.RefreshToken)
+
+	_, err = service.authRepository.SaveRefreshToken(ctx, database.SaveRefreshTokenParams{
+		CustomerID: foundToken.ID.String(),
+		TokenHash:  hashedRefreshToken,
+		ExpiresAt:  time.Now().Add(7 * 24 * time.Hour), // Valid for 1 week
+	})
+	if err != nil {
+		return model.TokensOutput{}, err
+	}
+
+	err = service.authRepository.InvalidRefreshToken(ctx, hashedToken)
+	if err != nil {
+		return model.TokensOutput{}, err
+	}
+
+	return model.TokensOutput{
+		CustomerID:   foundToken.CustomerID,
+		AccessToken:  newPairToken.AccessToken,
+		RefreshToken: newPairToken.RefreshToken,
 	}, nil
 }

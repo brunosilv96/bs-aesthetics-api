@@ -34,18 +34,17 @@ func (service CustomerService) Register(ctx context.Context, payload model.Creat
 		return database.Customer{}, exception.ErrSysParseTimeDate
 	}
 
-	dbModel := database.CreateCustomerParams{
+	customer, err := service.repository.Save(ctx, database.CreateCustomerParams{
 		Name:     payload.Name,
 		Email:    payload.Email,
 		Phone:    payload.Phone,
 		Password: hashedPassword,
+		Role:     payload.Role,
 		Birthdate: pgtype.Date{
 			Time:  birthdate,
 			Valid: true,
 		},
-	}
-
-	customer, err := service.repository.Save(ctx, dbModel)
+	})
 	if err != nil {
 		return database.Customer{}, err
 	}
@@ -127,6 +126,10 @@ func (service CustomerService) Update(ctx context.Context, id string, payload mo
 		customer.Phone = *payload.Phone
 	}
 
+	if payload.Role != nil {
+		customer.Role = *payload.Role
+	}
+
 	if payload.Birthdate != nil {
 		birthdate, err := time.Parse("2006-01-02", *payload.Birthdate)
 		if err != nil {
@@ -145,6 +148,7 @@ func (service CustomerService) Update(ctx context.Context, id string, payload mo
 		Email:     customer.Email,
 		Phone:     customer.Phone,
 		Birthdate: customer.Birthdate,
+		Role:      customer.Role,
 	})
 	if err != nil {
 		return database.Customer{}, err
