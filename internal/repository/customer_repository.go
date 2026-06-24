@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"log/slog"
 
 	database "github.com/brunosilv96/bs-aesthetics-api/database/sqlc"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/exception"
@@ -23,7 +24,8 @@ func NewCustomerRepository(db database.Querier) *CustomerRepository {
 func (repository CustomerRepository) Save(ctx context.Context, payload database.CreateCustomerParams) (database.Customer, error) {
 	customer, err := repository.db.CreateCustomer(ctx, payload)
 	if err != nil {
-		return database.Customer{}, err
+		slog.Error("[BD] error on save customer in database", "pgx error:", err)
+		return database.Customer{}, exception.ErrSysSaveCustomer
 	}
 
 	return customer, nil
@@ -32,7 +34,8 @@ func (repository CustomerRepository) Save(ctx context.Context, payload database.
 func (repository CustomerRepository) List(ctx context.Context) ([]database.Customer, error) {
 	customers, err := repository.db.LoadCustomers(ctx)
 	if err != nil {
-		return []database.Customer{}, err
+		slog.Error("[BD] error on load customer list in database", "pgx error:", err)
+		return []database.Customer{}, exception.ErrSysLoadCustomerList
 	}
 
 	return customers, nil
@@ -45,7 +48,8 @@ func (repository CustomerRepository) FindByID(ctx context.Context, id pgtype.UUI
 			return database.Customer{}, exception.ErrSysCustomerNotFound
 		}
 
-		return database.Customer{}, err
+		slog.Error("[BD] error on load customer by id in database", "id:", id, "pgx error:", err)
+		return database.Customer{}, exception.ErrSysFindCustomerById
 	}
 
 	return customer, nil
@@ -58,7 +62,8 @@ func (repository CustomerRepository) FindByEmail(ctx context.Context, email stri
 			return database.Customer{}, exception.ErrSysCustomerNotFound
 		}
 
-		return database.Customer{}, err
+		slog.Error("[BD] error on load customer by id in database", "email:", email, "pgx error:", err)
+		return database.Customer{}, exception.ErrSysFindCustomerByEmail
 	}
 
 	return customer, nil
@@ -67,7 +72,8 @@ func (repository CustomerRepository) FindByEmail(ctx context.Context, email stri
 func (repository CustomerRepository) SoftDelete(ctx context.Context, id pgtype.UUID) error {
 	err := repository.db.SoftDeleteCustomer(ctx, id)
 	if err != nil {
-		return err
+		slog.Error("[BD] error on delete customer by id in database", "id:", id, "pgx error:", err)
+		return exception.ErrSysDeleteCustomer
 	}
 
 	return nil
@@ -76,7 +82,8 @@ func (repository CustomerRepository) SoftDelete(ctx context.Context, id pgtype.U
 func (repository CustomerRepository) Update(ctx context.Context, customer database.UpdateCustomerParams) error {
 	err := repository.db.UpdateCustomer(ctx, customer)
 	if err != nil {
-		return err
+		slog.Error("[BD] error on update customer by id in database", "id:", customer.ID, "pgx error:", err)
+		return exception.ErrSysUpdateCustomer
 	}
 
 	return nil

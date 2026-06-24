@@ -4,7 +4,6 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
-	"fmt"
 	"log/slog"
 	"time"
 
@@ -49,14 +48,16 @@ func (service *TokenService) GenerateToken(customerID, role string) (*TokenPair,
 	// Access Token Assigned
 	signedAccessToken, err := accessToken.SignedString(service.jwtSecret)
 	if err != nil {
-		return nil, fmt.Errorf("error to assign access token: %w", err)
+		slog.Error("error on assigning access token", "error:", err)
+		return nil, exception.ErrSysAssigningToken
 	}
 
 	// 2. Generate Refresh Token
 	b := make([]byte, 32)
 	_, err = rand.Read(b)
 	if err != nil {
-		return nil, fmt.Errorf("error to generate random string: %w", err)
+		slog.Error("failed on generate random bytes for refresh token", "error:", err)
+		return nil, exception.ErrSysGenerateRandomDates
 	}
 
 	refreshToken := hex.EncodeToString(b)
@@ -76,6 +77,7 @@ func (service *TokenService) HashRefreshToken(token string) string {
 func (service *TokenService) ValidateAccessToken(encryptedToken string) (*CustomClaim, error) {
 	token, err := jwt.Parse(encryptedToken, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			slog.Error("error on verify token assigning, most different")
 			return nil, exception.ErrSysTokenAssigningInvalid
 		}
 

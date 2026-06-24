@@ -28,7 +28,7 @@ func NewAuthService(tokenService auth.TokenService, authRepository repository.Au
 func (service *AuthService) AuthenticateCustomer(ctx context.Context, payload model.AuthRequest) (model.TokensOutput, error) {
 	customer, err := service.customerService.FindByEmail(ctx, payload.Email)
 	if err != nil {
-		return model.TokensOutput{}, err
+		return model.TokensOutput{}, exception.ErrSysCustomerNotFound
 	}
 
 	passwordNonMatches := auth.CheckPasswordHash(payload.Password, customer.Password)
@@ -46,7 +46,7 @@ func (service *AuthService) AuthenticateCustomer(ctx context.Context, payload mo
 	savedToken, err := service.AuthRepository.SaveRefreshToken(ctx, database.SaveRefreshTokenParams{
 		CustomerID: customer.ID.String(),
 		TokenHash:  hashedToken,
-		ExpiresAt:  time.Now().Add(7 * 24 * time.Hour),
+		ExpiresAt:  time.Now().Add(7 * 24 * time.Hour), // Valid for 1 week
 	})
 	if err != nil {
 		return model.TokensOutput{}, err

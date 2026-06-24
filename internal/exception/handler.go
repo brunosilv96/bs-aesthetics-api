@@ -21,22 +21,34 @@ func (e *ApiError) Error() string {
 var (
 	ErrNotFound            = &ApiError{Status: 404, Code: "NOT_FOUND", Message: "resource not found"}
 	ErrCustomerNotFound    = &ApiError{Status: 404, Code: "NOT_FOUND", Message: "customer not found"}
-	ErrUnauthorized        = &ApiError{Status: 401, Code: "UNAUTHORIZED", Message: "authentication required"}
 	ErrBadRequest          = &ApiError{Status: 400, Code: "BAD_REQUEST", Message: "invalid request"}
 	ErrBadRequestID        = &ApiError{Status: 400, Code: "BAD_REQUEST", Message: "id is required"}
 	ErrParseUUIDFailed     = &ApiError{Status: 400, Code: "BAD_REQUEST", Message: "UUID format is invalid"}
-	ErrInvalidPassword     = &ApiError{Status: 400, Code: "BAD_REQUEST", Message: "Password is invalid"}
-	ErrInvalidBearerToken  = &ApiError{Status: 401, Code: "UNAUTHORIZED", Message: "Bearer Token format is invalid"}
-	ErrExpiredBearerToken  = &ApiError{Status: 401, Code: "UNAUTHORIZED", Message: "Token expired or invalid"}
-	ErrInvalidPayloadToken = &ApiError{Status: 401, Code: "UNAUTHORIZED", Message: "Payload token is invalid"}
+	ErrInvalidPassword     = &ApiError{Status: 400, Code: "BAD_REQUEST", Message: "password is invalid"}
+	ErrUnauthorized        = &ApiError{Status: 401, Code: "UNAUTHORIZED", Message: "authentication required"}
+	ErrInvalidBearerToken  = &ApiError{Status: 401, Code: "UNAUTHORIZED", Message: "bearer Token format is invalid"}
+	ErrExpiredBearerToken  = &ApiError{Status: 401, Code: "UNAUTHORIZED", Message: "token expired or invalid"}
+	ErrInvalidPayloadToken = &ApiError{Status: 401, Code: "UNAUTHORIZED", Message: "payload token is invalid"}
 )
 
 var (
-	ErrSysExpiredOrInvalidBearerToken = fmt.Errorf("Token expired or invalid")
-	ErrSysTokenAssigningInvalid       = fmt.Errorf("Token assigning is invalid")
-	ErrSysInvalidPayloadToken         = fmt.Errorf("Payload token is invalid")
-	ErrSysCustomerNotFound            = fmt.Errorf("Customer not found")
-	ErrSysInvalidPassword             = fmt.Errorf("Password is invalid")
+	ErrSysExpiredOrInvalidBearerToken = fmt.Errorf("token expired or invalid")
+	ErrSysTokenAssigningInvalid       = fmt.Errorf("token assigning is invalid")
+	ErrSysAssigningToken              = fmt.Errorf("error on assigning token")
+	ErrSysInvalidPayloadToken         = fmt.Errorf("payload token is invalid")
+	ErrSysCustomerNotFound            = fmt.Errorf("customer not found")
+	ErrSysInvalidPassword             = fmt.Errorf("password is invalid")
+	ErrSysHashPassword                = fmt.Errorf("error on hash password")
+	ErrSysSaveRefreshToken            = fmt.Errorf("error on save refresh token")
+	ErrSysGeneratePairTokens          = fmt.Errorf("error on generate pair tokens")
+	ErrSysGenerateRandomDates         = fmt.Errorf("error on generate random dates")
+	ErrSysParseTimeDate               = fmt.Errorf("error on parse date to time.Time")
+	ErrSysSaveCustomer                = fmt.Errorf("error on save customer in database")
+	ErrSysLoadCustomerList            = fmt.Errorf("error on load customer list in database")
+	ErrSysFindCustomerById            = fmt.Errorf("error on load customer by id in database")
+	ErrSysFindCustomerByEmail         = fmt.Errorf("error on load customer by email in database")
+	ErrSysDeleteCustomer              = fmt.Errorf("error on delete customer by id in database")
+	ErrSysUpdateCustomer              = fmt.Errorf("error on update customer by id in database")
 )
 
 func ErrorHandler() gin.HandlerFunc {

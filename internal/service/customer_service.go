@@ -26,12 +26,12 @@ func NewCustomerService(repository repository.CustomerRepository) *CustomerServi
 func (service CustomerService) Register(ctx context.Context, payload model.CreateCustomer) (database.Customer, error) {
 	hashedPassword, err := auth.HashPassword(payload.Password)
 	if err != nil {
-		return database.Customer{}, err
+		return database.Customer{}, exception.ErrSysHashPassword
 	}
 
 	birthdate, err := time.Parse("2006-01-02", payload.Birthdate)
 	if err != nil {
-		return database.Customer{}, err
+		return database.Customer{}, exception.ErrSysParseTimeDate
 	}
 
 	dbModel := database.CreateCustomerParams{
@@ -130,7 +130,7 @@ func (service CustomerService) Update(ctx context.Context, id string, payload mo
 	if payload.Birthdate != nil {
 		birthdate, err := time.Parse("2006-01-02", *payload.Birthdate)
 		if err != nil {
-			return database.Customer{}, err
+			return database.Customer{}, exception.ErrSysParseTimeDate
 		}
 
 		customer.Birthdate = pgtype.Date{

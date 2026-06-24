@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"log/slog"
 	"net/http"
 
@@ -31,8 +32,21 @@ func (handler *AuthHandler) Login(c *gin.Context) {
 
 	tokens, err := handler.authService.AuthenticateCustomer(c, payload)
 	if err != nil {
+		if errors.Is(err, exception.ErrSysCustomerNotFound) {
+			slog.Error("Customer not found", "email", payload.Email, "error", err)
+			c.Error(exception.ErrCustomerNotFound)
+			return
+		}
+
+		if errors.Is(err, exception.ErrSysInvalidPassword) {
+			slog.Error("Customer password is invalid", "email", payload.Email, "error", err)
+			c.Error(exception.ErrInvalidPassword)
+			return
+		}
+
 		slog.Error("Error on generate access for customer", "error", err)
 		c.Error(exception.ErrBadRequest)
+		return
 	}
 
 	c.SetCookie(
