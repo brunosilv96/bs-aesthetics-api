@@ -31,8 +31,8 @@ func (service *AuthService) AuthenticateCustomer(ctx context.Context, payload mo
 		return model.TokensOutput{}, exception.ErrSysCustomerNotFound
 	}
 
-	passwordNonMatches := auth.CheckPasswordHash(payload.Password, customer.Password)
-	if passwordNonMatches {
+	isPasswordValid := auth.CheckPasswordHash(payload.Password, customer.Password)
+	if !isPasswordValid {
 		return model.TokensOutput{}, exception.ErrSysInvalidPassword
 	}
 
@@ -101,4 +101,24 @@ func (service *AuthService) RotationRefreshToken(ctx context.Context, token stri
 		AccessToken:  newPairToken.AccessToken,
 		RefreshToken: newPairToken.RefreshToken,
 	}, nil
+}
+
+func (service *AuthService) Logoff(ctx context.Context, token string) error {
+	hashedToken := service.authService.HashRefreshToken(token)
+
+	foundToken, err := service.authRepository.LoadRefreshToken(ctx, hashedToken)
+	if err != nil {
+		return err
+	}
+
+	if hashedToken != foundToken.TokenHash {
+		return exception.ErrSysRefreshTokenNotFound
+	}
+
+	err = service.authRepository.InvalidRefreshToken(ctx, hashedToken)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

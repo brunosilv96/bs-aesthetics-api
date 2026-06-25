@@ -113,3 +113,45 @@ func (handler *AuthHandler) RefreshToken(c *gin.Context) {
 		AccessToken: tokens.AccessToken,
 	})
 }
+
+func (handler *AuthHandler) Logout(c *gin.Context) {
+	refreshToken, err := c.Cookie("refresh_token")
+	if err != nil {
+		c.JSON(http.StatusNoContent, gin.H{})
+		return
+	}
+
+	err = handler.authService.Logoff(c, refreshToken)
+	if err != nil {
+		if errors.Is(err, exception.ErrSysRefreshTokenNotFound) {
+			slog.Error("refresh token not found", "error", err)
+			c.Error(exception.ErrRefreshTokenBadRequest)
+			return
+		}
+
+		if errors.Is(err, exception.ErrSysRefreshTokenExpired) {
+			slog.Error("refresh token has expired", "error", err)
+			c.Error(exception.ErrRefreshTokenExpired)
+			return
+		}
+
+		slog.Error("error on invalidate refresh token", "error", err)
+		c.Error(exception.ErrInvalidateRefreshToken)
+		return
+	}
+
+	c.SetCookie(
+		"refresh_token", // Name
+		"",              // Value
+		-1,              // Lifespan
+		"/",             // Path (all api)
+		"",              // Domain (empty use the current API domain)
+		true,            // Secure (true == HTTPS)
+		true,            // HTTP Only (true == prevents javascript from reading)
+	)
+
+	// For extra CSRF protection if your front end is web-based:
+	c.Header("SameSite", "Strict")
+
+	c.JSON(http.StatusNoContent, gin.H{})
+}

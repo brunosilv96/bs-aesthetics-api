@@ -23,16 +23,17 @@ var (
 	ErrNotFound                  = &ApiError{Status: 404, Code: "NOT_FOUND", Message: "resource not found"}
 	ErrCustomerNotFound          = &ApiError{Status: 404, Code: "NOT_FOUND", Message: "customer not found"}
 	ErrBadRequest                = &ApiError{Status: 400, Code: "BAD_REQUEST", Message: "invalid request"}
-	ErrCustomerAlreadyRegistered = &ApiError{Status: 400, Code: "BAD_REQUEST", Message: "customer already registered with the email provided"}
 	ErrBadRequestID              = &ApiError{Status: 400, Code: "BAD_REQUEST", Message: "id is required"}
 	ErrParseUUIDFailed           = &ApiError{Status: 400, Code: "BAD_REQUEST", Message: "UUID format is invalid"}
 	ErrInvalidPassword           = &ApiError{Status: 400, Code: "BAD_REQUEST", Message: "password is invalid"}
-	ErrRefreshTokenBadRequest    = &ApiError{Status: 401, Code: "UNAUTHORIZED", Message: "refresh token is not valid"}
+	ErrCustomerAlreadyRegistered = &ApiError{Status: 409, Code: "CONFLICT", Message: "customer already registered with the email provided"}
+	ErrRefreshTokenBadRequest    = &ApiError{Status: 401, Code: "UNAUTHORIZED", Message: "refresh token is not valid or expired"}
 	ErrRefreshTokenExpired       = &ApiError{Status: 401, Code: "UNAUTHORIZED", Message: "refresh token has expired"}
 	ErrUnauthorized              = &ApiError{Status: 401, Code: "UNAUTHORIZED", Message: "authentication required"}
-	ErrInvalidBearerToken        = &ApiError{Status: 401, Code: "UNAUTHORIZED", Message: "bearer Token format is invalid"}
+	ErrInvalidBearerToken        = &ApiError{Status: 401, Code: "UNAUTHORIZED", Message: "bearer token format is invalid or expired"}
 	ErrExpiredBearerToken        = &ApiError{Status: 401, Code: "UNAUTHORIZED", Message: "token expired or invalid"}
 	ErrInvalidPayloadToken       = &ApiError{Status: 401, Code: "UNAUTHORIZED", Message: "payload token is invalid"}
+	ErrInvalidateRefreshToken    = &ApiError{Status: 500, Code: "INTERNAL_SERVER_ERROR", Message: "error on invalidate refresh token in logoff"}
 )
 
 // System Mapping Errors

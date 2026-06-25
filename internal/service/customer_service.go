@@ -24,6 +24,15 @@ func NewCustomerService(repository repository.CustomerRepository) *CustomerServi
 }
 
 func (service CustomerService) Register(ctx context.Context, payload model.CreateCustomer) (database.Customer, error) {
+	foundCustomer, err := service.repository.FindByEmail(ctx, payload.Email)
+	if err != nil && err != exception.ErrSysCustomerNotFound {
+		return database.Customer{}, err
+	}
+
+	if foundCustomer.Email == payload.Email {
+		return database.Customer{}, exception.ErrSysCustomerAlreadyRegistered
+	}
+
 	hashedPassword, err := auth.HashPassword(payload.Password)
 	if err != nil {
 		return database.Customer{}, exception.ErrSysHashPassword
