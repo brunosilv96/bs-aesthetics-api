@@ -34,6 +34,7 @@ var (
 	ErrExpiredBearerToken        = &ApiError{Status: 401, Code: "UNAUTHORIZED", Message: "token expired or invalid"}
 	ErrInvalidPayloadToken       = &ApiError{Status: 401, Code: "UNAUTHORIZED", Message: "payload token is invalid"}
 	ErrInvalidateRefreshToken    = &ApiError{Status: 500, Code: "INTERNAL_SERVER_ERROR", Message: "error on invalidate refresh token in logoff"}
+	ErrInternalServerError       = &ApiError{Status: 500, Code: "INTERNAL_SERVER_ERROR", Message: "something didn't work as expected"}
 )
 
 // System Mapping Errors
