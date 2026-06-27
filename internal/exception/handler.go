@@ -20,47 +20,55 @@ func (e *ApiError) Error() string {
 
 // HTTP Mapping Errors
 var (
-	ErrNotFound                  = &ApiError{Status: 404, Code: "NOT_FOUND", Message: "resource not found"}
-	ErrCustomerNotFound          = &ApiError{Status: 404, Code: "NOT_FOUND", Message: "customer not found"}
-	ErrBadRequest                = &ApiError{Status: 400, Code: "BAD_REQUEST", Message: "invalid request"}
-	ErrBadRequestID              = &ApiError{Status: 400, Code: "BAD_REQUEST", Message: "id is required"}
-	ErrParseUUIDFailed           = &ApiError{Status: 400, Code: "BAD_REQUEST", Message: "UUID format is invalid"}
-	ErrInvalidPassword           = &ApiError{Status: 400, Code: "BAD_REQUEST", Message: "password is invalid"}
-	ErrCustomerAlreadyRegistered = &ApiError{Status: 409, Code: "CONFLICT", Message: "customer already registered with the email provided"}
-	ErrRefreshTokenBadRequest    = &ApiError{Status: 401, Code: "UNAUTHORIZED", Message: "refresh token is not valid or expired"}
-	ErrRefreshTokenExpired       = &ApiError{Status: 401, Code: "UNAUTHORIZED", Message: "refresh token has expired"}
-	ErrUnauthorized              = &ApiError{Status: 401, Code: "UNAUTHORIZED", Message: "authentication required"}
-	ErrInvalidBearerToken        = &ApiError{Status: 401, Code: "UNAUTHORIZED", Message: "bearer token format is invalid or expired"}
-	ErrExpiredBearerToken        = &ApiError{Status: 401, Code: "UNAUTHORIZED", Message: "token expired or invalid"}
-	ErrInvalidPayloadToken       = &ApiError{Status: 401, Code: "UNAUTHORIZED", Message: "payload token is invalid"}
-	ErrInvalidateRefreshToken    = &ApiError{Status: 500, Code: "INTERNAL_SERVER_ERROR", Message: "error on invalidate refresh token in logoff"}
-	ErrInternalServerError       = &ApiError{Status: 500, Code: "INTERNAL_SERVER_ERROR", Message: "something didn't work as expected"}
+	ErrBadRequest   = &ApiError{Status: 400, Code: "BAD_REQUEST", Message: "invalid request"}
+	ErrInvalidInput = &ApiError{Status: 400, Code: "INVALID_INPUT", Message: "one or more fields are invalid"}
+	ErrInvalidUUID  = &ApiError{Status: 400, Code: "INVALID_UUID", Message: "invalid UUID format"}
+
+	ErrUnauthorized       = &ApiError{Status: 401, Code: "UNAUTHORIZED", Message: "authentication required"}
+	ErrInvalidCredentials = &ApiError{Status: 401, Code: "INVALID_CREDENTIALS", Message: "invalid email or password"}
+	ErrInvalidToken       = &ApiError{Status: 401, Code: "INVALID_TOKEN", Message: "token is invalid"}
+	ErrExpiredToken       = &ApiError{Status: 401, Code: "TOKEN_EXPIRED", Message: "token has expired"}
+
+	ErrForbidden = &ApiError{Status: 403, Code: "FORBIDDEN", Message: "access denied"}
+
+	ErrNotFound = &ApiError{Status: 404, Code: "NOT_FOUND", Message: "resource not found"}
+
+	ErrConflict = &ApiError{Status: 409, Code: "CONFLICT", Message: "resource already exists"}
+
+	ErrUnprocessableEntity = &ApiError{
+		Status:  422,
+		Code:    "UNPROCESSABLE_ENTITY",
+		Message: "request cannot be processed",
+	}
+
+	ErrInternal = &ApiError{
+		Status:  500,
+		Code:    "INTERNAL_SERVER_ERROR",
+		Message: "an unexpected error occurred",
+	}
 )
 
 // System Mapping Errors
 var (
-	ErrSysExpiredOrInvalidBearerToken = fmt.Errorf("token expired or invalid")
-	ErrSysTokenAssigningInvalid       = fmt.Errorf("token assigning is invalid")
-	ErrSysAssigningToken              = fmt.Errorf("error on assigning token")
-	ErrSysInvalidPayloadToken         = fmt.Errorf("payload token is invalid")
-	ErrSysCustomerNotFound            = fmt.Errorf("customer not found")
-	ErrSysCustomerAlreadyRegistered   = fmt.Errorf("customer already registered")
-	ErrSysInvalidPassword             = fmt.Errorf("password is invalid")
-	ErrSysHashPassword                = fmt.Errorf("error on hash password")
-	ErrSysSaveRefreshToken            = fmt.Errorf("error on save refresh token")
-	ErrSysFindRefreshToken            = fmt.Errorf("error on find refresh token")
-	ErrSysInvalidRefreshToken         = fmt.Errorf("error on invalid refresh token")
-	ErrSysRefreshTokenNotFound        = fmt.Errorf("hashed refresh token not found")
-	ErrSysRefreshTokenExpired         = fmt.Errorf("refresh token has expired")
-	ErrSysGeneratePairTokens          = fmt.Errorf("error on generate pair tokens")
-	ErrSysGenerateRandomDates         = fmt.Errorf("error on generate random dates")
-	ErrSysParseTimeDate               = fmt.Errorf("error on parse date to time.Time")
-	ErrSysSaveCustomer                = fmt.Errorf("error on save customer in database")
-	ErrSysLoadCustomerList            = fmt.Errorf("error on load customer list in database")
-	ErrSysFindCustomerById            = fmt.Errorf("error on load customer by id in database")
-	ErrSysFindCustomerByEmail         = fmt.Errorf("error on load customer by email in database")
-	ErrSysDeleteCustomer              = fmt.Errorf("error on delete customer by id in database")
-	ErrSysUpdateCustomer              = fmt.Errorf("error on update customer by id in database")
+	ErrSysNotFound          = errors.New("resource not found")
+	ErrSysAlreadyExists     = errors.New("resource already exists")
+	ErrSysInvalidInput      = errors.New("invalid input")
+	ErrSysInvalidCredential = errors.New("invalid credential")
+	ErrSysUnauthorized      = errors.New("unauthorized")
+	ErrSysForbidden         = errors.New("forbidden")
+
+	ErrSysInvalidToken  = errors.New("invalid token")
+	ErrSysExpiredToken  = errors.New("expired token")
+	ErrSysTokenNotFound = errors.New("token not found")
+
+	ErrSysHash     = errors.New("hash operation failed")
+	ErrSysGenerate = errors.New("generation failed")
+	ErrSysParse    = errors.New("parse failed")
+
+	ErrSysDatabase    = errors.New("database operation failed")
+	ErrSysPersistence = errors.New("persistence operation failed")
+
+	ErrSysInternal = errors.New("internal server error")
 )
 
 func ErrorHandler() gin.HandlerFunc {
@@ -79,6 +87,13 @@ func ErrorHandler() gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"code": "INTERNAL_ERROR", "message": "an unexpected error occurred"})
 		}
 	}
+}
+
+func ErrorWithContext(c *gin.Context, err ApiError) {
+	c.JSON(http.StatusBadRequest, gin.H{
+		"code":  err.Code,
+		"error": fmt.Sprintf("%v error: %s", err.Message, err.Message),
+	})
 }
 
 func BadRequestErrorHandler(c *gin.Context, err error) {

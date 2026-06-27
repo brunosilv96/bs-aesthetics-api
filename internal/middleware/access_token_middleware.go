@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"errors"
 	"strings"
 
 	"github.com/brunosilv96/bs-aesthetics-api/internal/auth"
@@ -33,7 +32,7 @@ func (middleware *AccessTokenMiddleware) RequireAuth() gin.HandlerFunc {
 		const bearerPrefix = "Bearer "
 
 		if !strings.HasPrefix(authHeader, bearerPrefix) {
-			c.Error(exception.ErrInvalidBearerToken)
+			c.Error(exception.ErrInvalidToken)
 			c.Abort()
 			return
 		}
@@ -43,13 +42,7 @@ func (middleware *AccessTokenMiddleware) RequireAuth() gin.HandlerFunc {
 		// 3. Check and Validate Access Token
 		claims, err := middleware.tokenService.ValidateAccessToken(token)
 		if err != nil {
-			if errors.Is(err, exception.ErrSysExpiredOrInvalidBearerToken) {
-				c.Error(exception.ErrExpiredBearerToken)
-				c.Abort()
-				return
-			}
-
-			c.Error(exception.ErrInvalidBearerToken)
+			c.Error(exception.ErrExpiredToken)
 			c.Abort()
 			return
 		}

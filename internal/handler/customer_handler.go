@@ -33,14 +33,14 @@ func (handler CustomerHandler) RegisterCustomer(c *gin.Context) {
 
 	customer, err := handler.service.Register(c, payload)
 	if err != nil {
-		if errors.Is(err, exception.ErrSysCustomerAlreadyRegistered) {
+		if errors.Is(err, exception.ErrSysAlreadyExists) {
 			slog.Error("error on register customer, email already registered", "error", err)
-			c.Error(exception.ErrCustomerAlreadyRegistered)
+			c.Error(exception.ErrConflict)
 			return
 		}
 
 		slog.Error("error on register customer", "error", err)
-		c.Error(exception.ErrBadRequest)
+		c.Error(exception.ErrInternal)
 		return
 	}
 
@@ -59,7 +59,7 @@ func (handler CustomerHandler) Customers(c *gin.Context) {
 	customers, err := handler.service.List(c)
 	if err != nil {
 		slog.Error("Error on load customer list", "error", err)
-		c.Error(exception.ErrBadRequest)
+		c.Error(exception.ErrInternal)
 		return
 	}
 
@@ -84,20 +84,21 @@ func (handler CustomerHandler) Customers(c *gin.Context) {
 func (handler CustomerHandler) CustomerByID(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
-		slog.Error("Parameter ID is empty")
-		c.Error(exception.ErrBadRequestID)
+		slog.Error("parameter ID is empty")
+		c.Error(exception.ErrInvalidUUID)
 		return
 	}
 
 	customer, err := handler.service.FindByID(c, id)
 	if err != nil {
-		slog.Error("Customer not found", "id", id, "error", err)
-		if errors.Is(err, exception.ErrSysCustomerNotFound) {
+		if errors.Is(err, exception.ErrNotFound) {
+			slog.Error("customer not found", "id", id, "error", err)
 			c.Error(exception.ErrNotFound)
 			return
 		}
 
-		c.Error(exception.ErrBadRequest)
+		slog.Error("error on find customer by id", "id", id, "error", err)
+		c.Error(exception.ErrInternal)
 		return
 	}
 
@@ -118,14 +119,20 @@ func (handler CustomerHandler) DisableCustomer(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
 		slog.Error("parameter ID is empty")
-		c.Error(exception.ErrBadRequestID)
+		c.Error(exception.ErrInvalidUUID)
 		return
 	}
 
 	err := handler.service.Delete(c, id)
 	if err != nil {
+		if errors.Is(err, exception.ErrNotFound) {
+			slog.Error("customer not found", "id", id, "error", err)
+			c.Error(exception.ErrNotFound)
+			return
+		}
+
 		slog.Error("failed to disable customer", "id", id, "error", err)
-		c.Error(exception.ErrBadRequest)
+		c.Error(exception.ErrInternal)
 		return
 	}
 
@@ -136,7 +143,7 @@ func (handler CustomerHandler) UpdateCustomer(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
 		slog.Error("parameter ID is empty")
-		c.Error(exception.ErrBadRequestID)
+		c.Error(exception.ErrInvalidUUID)
 		return
 	}
 
@@ -152,13 +159,19 @@ func (handler CustomerHandler) UpdateCustomer(c *gin.Context) {
 		_, err := time.Parse("2006-01-02", *payload.Birthdate)
 		if err != nil {
 			slog.Error("error on bind body payload", "error", err)
-			exception.BadRequestErrorHandler(c, err)
+			c.Error(exception.ErrInvalidInput)
 			return
 		}
 	}
 
 	customer, err := handler.service.Update(c, id, payload)
 	if err != nil {
+		if errors.Is(err, exception.ErrNotFound) {
+			slog.Error("customer not found", "id", id, "error", err)
+			c.Error(exception.ErrNotFound)
+			return
+		}
+
 		slog.Error("failed to update customer", "id", id, "error", err)
 		c.Error(exception.ErrBadRequest)
 		return

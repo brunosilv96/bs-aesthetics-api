@@ -32,20 +32,20 @@ func (handler *AuthHandler) Login(c *gin.Context) {
 
 	tokens, err := handler.authService.AuthenticateCustomer(c, payload)
 	if err != nil {
-		if errors.Is(err, exception.ErrSysCustomerNotFound) {
+		if errors.Is(err, exception.ErrSysNotFound) {
 			slog.Error("customer not found", "email", payload.Email, "error", err)
-			c.Error(exception.ErrCustomerNotFound)
+			c.Error(exception.ErrNotFound)
 			return
 		}
 
-		if errors.Is(err, exception.ErrSysInvalidPassword) {
-			slog.Error("customer password is invalid", "email", payload.Email, "error", err)
-			c.Error(exception.ErrInvalidPassword)
+		if errors.Is(err, exception.ErrSysInvalidCredential) {
+			slog.Error("customer email or password is invalid", "email", payload.Email, "error", err)
+			c.Error(exception.ErrInvalidCredentials)
 			return
 		}
 
 		slog.Error("error on generate access for customer", "error", err)
-		c.Error(exception.ErrBadRequest)
+		c.Error(exception.ErrInternal)
 		return
 	}
 
@@ -72,26 +72,26 @@ func (handler *AuthHandler) RefreshToken(c *gin.Context) {
 	refreshToken, err := c.Cookie("refresh_token")
 	if err != nil {
 		slog.Error("error recovery refresh token cookie", "error", err)
-		c.Error(exception.ErrRefreshTokenBadRequest)
+		c.Error(exception.ErrInvalidToken)
 		return
 	}
 
 	tokens, err := handler.authService.RotationRefreshToken(c, refreshToken)
 	if err != nil {
-		if errors.Is(err, exception.ErrSysRefreshTokenNotFound) {
+		if errors.Is(err, exception.ErrSysNotFound) {
 			slog.Error("refresh token not found", "error", err)
-			c.Error(exception.ErrRefreshTokenBadRequest)
+			c.Error(exception.ErrInvalidToken)
 			return
 		}
 
-		if errors.Is(err, exception.ErrSysRefreshTokenExpired) {
+		if errors.Is(err, exception.ErrSysExpiredToken) {
 			slog.Error("refresh token has expired", "error", err)
-			c.Error(exception.ErrRefreshTokenExpired)
+			c.Error(exception.ErrExpiredToken)
 			return
 		}
 
 		slog.Error("error rotate refresh token", "error", err)
-		c.Error(exception.ErrRefreshTokenBadRequest)
+		c.Error(exception.ErrInternal)
 		return
 	}
 
@@ -123,20 +123,20 @@ func (handler *AuthHandler) Logout(c *gin.Context) {
 
 	err = handler.authService.Logoff(c, refreshToken)
 	if err != nil {
-		if errors.Is(err, exception.ErrSysRefreshTokenNotFound) {
+		if errors.Is(err, exception.ErrSysNotFound) {
 			slog.Error("refresh token not found", "error", err)
-			c.Error(exception.ErrRefreshTokenBadRequest)
+			c.Error(exception.ErrInvalidToken)
 			return
 		}
 
-		if errors.Is(err, exception.ErrSysRefreshTokenExpired) {
+		if errors.Is(err, exception.ErrSysExpiredToken) {
 			slog.Error("refresh token has expired", "error", err)
-			c.Error(exception.ErrRefreshTokenExpired)
+			c.Error(exception.ErrExpiredToken)
 			return
 		}
 
 		slog.Error("error on invalidate refresh token", "error", err)
-		c.Error(exception.ErrInvalidateRefreshToken)
+		c.Error(exception.ErrInternal)
 		return
 	}
 

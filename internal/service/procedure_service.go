@@ -23,15 +23,19 @@ func NewProcedureService(customerRepository repository.CustomerRepository) *Proc
 func (service *ProcedureService) Register(ctx context.Context, customerID string, payload model.RegisterProcedure) error {
 	parsedID, err := uuid.Parse(customerID)
 	if err != nil {
-		return exception.ErrParseUUIDFailed
+		return exception.ErrSysParse
 	}
 
-	_, err = service.customerRepository.FindByID(ctx, pgtype.UUID{
+	customer, err := service.customerRepository.FindByID(ctx, pgtype.UUID{
 		Bytes: parsedID,
 		Valid: true,
 	})
 	if err != nil {
 		return err
+	}
+
+	if customer.Role == "customer" {
+		return nil
 	}
 
 	return nil

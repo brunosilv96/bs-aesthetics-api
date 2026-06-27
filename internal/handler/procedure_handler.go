@@ -37,7 +37,7 @@ func (handler *ProcedureHandler) Create(c *gin.Context) {
 	err = handler.procedureService.Register(c, customerID, payload)
 	if err != nil {
 		slog.Error("error on register new procedure", "error", err)
-		c.Error(exception.ErrInternalServerError)
+		c.Error(exception.ErrInternal)
 		return
 	}
 

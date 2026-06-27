@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -49,7 +50,7 @@ func (service *TokenService) GenerateToken(customerID, role string) (*TokenPair,
 	signedAccessToken, err := accessToken.SignedString(service.jwtSecret)
 	if err != nil {
 		slog.Error("error on assigning access token", "error:", err)
-		return nil, exception.ErrSysAssigningToken
+		return nil, fmt.Errorf("%v - Error: %w", exception.ErrSysGenerate, err)
 	}
 
 	// 2. Generate Refresh Token
@@ -57,7 +58,7 @@ func (service *TokenService) GenerateToken(customerID, role string) (*TokenPair,
 	_, err = rand.Read(b)
 	if err != nil {
 		slog.Error("failed on generate random bytes for refresh token", "error:", err)
-		return nil, exception.ErrSysGenerateRandomDates
+		return nil, fmt.Errorf("%v - Error: %w", exception.ErrSysGenerate, err)
 	}
 
 	refreshToken := hex.EncodeToString(b)
@@ -78,20 +79,20 @@ func (service *TokenService) ValidateAccessToken(encryptedToken string) (*Custom
 	token, err := jwt.Parse(encryptedToken, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			slog.Error("error on verify token assigning, most different")
-			return nil, exception.ErrSysTokenAssigningInvalid
+			return nil, exception.ErrSysInvalidToken
 		}
 
 		return []byte(service.jwtSecret), nil
 	})
 	if err != nil {
 		slog.Error("failed to parse bearer token", "error", err)
-		return nil, exception.ErrSysExpiredOrInvalidBearerToken
+		return nil, exception.ErrSysInvalidToken
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok || !token.Valid {
 		slog.Error("bearer token is invalid or not match with custom claim", "error", err)
-		return nil, exception.ErrSysExpiredOrInvalidBearerToken
+		return nil, exception.ErrSysInvalidToken
 	}
 
 	return &CustomClaim{

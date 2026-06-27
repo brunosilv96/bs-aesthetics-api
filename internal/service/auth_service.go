@@ -28,12 +28,12 @@ func NewAuthService(tokenService auth.TokenService, authRepository repository.Au
 func (service *AuthService) AuthenticateCustomer(ctx context.Context, payload model.AuthRequest) (model.TokensOutput, error) {
 	customer, err := service.customerService.FindByEmail(ctx, payload.Email)
 	if err != nil {
-		return model.TokensOutput{}, exception.ErrSysCustomerNotFound
+		return model.TokensOutput{}, err
 	}
 
 	isPasswordValid := auth.CheckPasswordHash(payload.Password, customer.Password)
 	if !isPasswordValid {
-		return model.TokensOutput{}, exception.ErrSysInvalidPassword
+		return model.TokensOutput{}, exception.ErrSysInvalidCredential
 	}
 
 	tokens, err := service.authService.GenerateToken(customer.ID.String(), "customer")
@@ -68,11 +68,11 @@ func (service *AuthService) RotationRefreshToken(ctx context.Context, token stri
 	}
 
 	if hashedToken != foundToken.TokenHash {
-		return model.TokensOutput{}, exception.ErrSysRefreshTokenNotFound
+		return model.TokensOutput{}, exception.ErrSysInvalidToken
 	}
 
 	if time.Now().After(foundToken.ExpiresAt) {
-		return model.TokensOutput{}, exception.ErrSysRefreshTokenExpired
+		return model.TokensOutput{}, exception.ErrSysExpiredToken
 	}
 
 	newPairToken, err := service.authService.GenerateToken(foundToken.CustomerID, "customer")
@@ -112,7 +112,7 @@ func (service *AuthService) Logoff(ctx context.Context, token string) error {
 	}
 
 	if hashedToken != foundToken.TokenHash {
-		return exception.ErrSysRefreshTokenNotFound
+		return exception.ErrSysInvalidToken
 	}
 
 	err = service.authRepository.InvalidRefreshToken(ctx, hashedToken)

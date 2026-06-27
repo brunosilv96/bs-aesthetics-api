@@ -11,7 +11,7 @@ func HashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		slog.Error("Error to hash password", "error:", err)
-		return "", exception.ErrSysHashPassword
+		return "", exception.ErrSysGenerate
 	}
 
 	return string(bytes), nil

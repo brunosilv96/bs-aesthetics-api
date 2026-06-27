@@ -3,7 +3,12 @@
         "brunosilv",
         "constrants",
         "github",
-        "registred"
+        "jackc",
+        "pgconn",
+        "pgtype",
+        "registred",
+        "sqlc",
+        "uuid"
     ],
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "golang.go"

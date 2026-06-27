@@ -25,22 +25,22 @@ func NewCustomerService(repository repository.CustomerRepository) *CustomerServi
 
 func (service CustomerService) Register(ctx context.Context, payload model.CreateCustomer) (database.Customer, error) {
 	foundCustomer, err := service.repository.FindByEmail(ctx, payload.Email)
-	if err != nil && err != exception.ErrSysCustomerNotFound {
+	if err != nil && err != exception.ErrSysNotFound {
 		return database.Customer{}, err
 	}
 
 	if foundCustomer.Email == payload.Email {
-		return database.Customer{}, exception.ErrSysCustomerAlreadyRegistered
+		return database.Customer{}, exception.ErrSysAlreadyExists
 	}
 
 	hashedPassword, err := auth.HashPassword(payload.Password)
 	if err != nil {
-		return database.Customer{}, exception.ErrSysHashPassword
+		return database.Customer{}, err
 	}
 
 	birthdate, err := time.Parse("2006-01-02", payload.Birthdate)
 	if err != nil {
-		return database.Customer{}, exception.ErrSysParseTimeDate
+		return database.Customer{}, exception.ErrSysParse
 	}
 
 	customer, err := service.repository.Save(ctx, database.CreateCustomerParams{
@@ -73,7 +73,7 @@ func (service CustomerService) List(ctx context.Context) ([]database.Customer, e
 func (service CustomerService) FindByID(ctx context.Context, id string) (database.Customer, error) {
 	parsedID, err := uuid.Parse(id)
 	if err != nil {
-		return database.Customer{}, exception.ErrParseUUIDFailed
+		return database.Customer{}, exception.ErrSysParse
 	}
 
 	customer, err := service.repository.FindByID(ctx, pgtype.UUID{
@@ -90,7 +90,7 @@ func (service CustomerService) FindByID(ctx context.Context, id string) (databas
 func (service CustomerService) Delete(ctx context.Context, id string) error {
 	parsedID, err := uuid.Parse(id)
 	if err != nil {
-		return exception.ErrParseUUIDFailed
+		return exception.ErrSysParse
 	}
 
 	customer, err := service.repository.FindByID(ctx, pgtype.UUID{
@@ -112,7 +112,7 @@ func (service CustomerService) Delete(ctx context.Context, id string) error {
 func (service CustomerService) Update(ctx context.Context, id string, payload model.UpdateCustomer) (database.Customer, error) {
 	parsedID, err := uuid.Parse(id)
 	if err != nil {
-		return database.Customer{}, exception.ErrParseUUIDFailed
+		return database.Customer{}, exception.ErrSysParse
 	}
 
 	customer, err := service.repository.FindByID(ctx, pgtype.UUID{
@@ -142,7 +142,7 @@ func (service CustomerService) Update(ctx context.Context, id string, payload mo
 	if payload.Birthdate != nil {
 		birthdate, err := time.Parse("2006-01-02", *payload.Birthdate)
 		if err != nil {
-			return database.Customer{}, exception.ErrSysParseTimeDate
+			return database.Customer{}, exception.ErrSysParse
 		}
 
 		customer.Birthdate = pgtype.Date{
