@@ -47,8 +47,10 @@ func (middleware *AccessTokenMiddleware) RequireAuth() gin.HandlerFunc {
 			return
 		}
 
-		c.Set("customer_id", claims.CustomerID)
-		c.Set("role", claims.Role)
+		c.Set("auth_identity", &auth.Identity{
+			CustomerID: claims.CustomerID,
+			Role:       claims.Role,
+		})
 
 		c.Next()
 	}

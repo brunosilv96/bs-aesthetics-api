@@ -23,9 +23,23 @@ type Customer struct {
 	DeletedAt *time.Time  `json:"deleted_at"`
 }
 
+type Procedure struct {
+	ID              pgtype.UUID `json:"id"`
+	RegistredBy     pgtype.UUID `json:"registred_by"`
+	Name            string      `json:"name"`
+	Description     string      `json:"description"`
+	BannerUrl       pgtype.Text `json:"banner_url"`
+	Price           float64     `json:"price"`
+	DurationMinutes int32       `json:"duration_minutes"`
+	Available       bool        `json:"available"`
+	CreatedAt       *time.Time  `json:"created_at"`
+	UpdatedAt       *time.Time  `json:"updated_at"`
+}
+
 type RefreshToken struct {
 	ID         pgtype.UUID `json:"id"`
 	CustomerID string      `json:"customer_id"`
+	Role       string      `json:"role"`
 	TokenHash  string      `json:"token_hash"`
 	ExpiresAt  time.Time   `json:"expires_at"`
 	CreatedAt  *time.Time  `json:"created_at"`

@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 
+	database "github.com/brunosilv96/bs-aesthetics-api/database/sqlc"
+	"github.com/brunosilv96/bs-aesthetics-api/internal/auth"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/exception"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/model"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/repository"
@@ -11,19 +13,29 @@ import (
 )
 
 type ProcedureService struct {
-	customerRepository repository.CustomerRepository
+	customerRepository  repository.CustomerRepository
+	procedureRepository repository.ProcedureRepository
 }
 
-func NewProcedureService(customerRepository repository.CustomerRepository) *ProcedureService {
+func NewProcedureService(customerRepository repository.CustomerRepository, procedureRepository repository.ProcedureRepository) *ProcedureService {
 	return &ProcedureService{
 		customerRepository,
+		procedureRepository,
 	}
 }
 
-func (service *ProcedureService) Register(ctx context.Context, customerID string, payload model.RegisterProcedure) error {
-	parsedID, err := uuid.Parse(customerID)
+func (service *ProcedureService) Register(ctx context.Context, identity *auth.Identity, payload model.RegisterProcedure) (database.Procedure, error) {
+	if identity.Role != "admin" {
+		return database.Procedure{}, exception.ErrSysForbidden
+	}
+
+	if payload.Price < 0 {
+		return database.Procedure{}, exception.ErrSysInvalidInput
+	}
+
+	parsedID, err := uuid.Parse(identity.CustomerID)
 	if err != nil {
-		return exception.ErrSysParse
+		return database.Procedure{}, exception.ErrSysParse
 	}
 
 	customer, err := service.customerRepository.FindByID(ctx, pgtype.UUID{
@@ -31,12 +43,26 @@ func (service *ProcedureService) Register(ctx context.Context, customerID string
 		Valid: true,
 	})
 	if err != nil {
-		return err
+		return database.Procedure{}, err
 	}
 
-	if customer.Role == "customer" {
-		return nil
+	_, err = service.procedureRepository.FindByID(ctx, customer.ID)
+	if err != nil && err != exception.ErrSysNotFound {
+		return database.Procedure{}, err
 	}
 
-	return nil
+	createdProcedure, err := service.procedureRepository.Save(ctx, database.CreateProcedureParams{
+		RegistredBy: customer.ID,
+		Name:        payload.Name,
+		Description: payload.Description,
+		BannerUrl: pgtype.Text{
+			String: payload.BannerURL,
+			Valid:  true,
+		},
+		Price:           payload.Price,
+		DurationMinutes: int32(payload.DurationMinutes),
+		Available:       payload.Available,
+	})
+
+	return createdProcedure, nil
 }

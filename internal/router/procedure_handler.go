@@ -9,5 +9,6 @@ import (
 func ProcedureRouter(router *gin.Engine, handler handler.ProcedureHandler, authMiddleware middleware.AccessTokenMiddleware) {
 	route := router.Group("/procedure")
 
-	route.POST("/register", handler.Create)
+	route.Use(authMiddleware.RequireAuth())
+	route.POST("/", handler.Create)
 }

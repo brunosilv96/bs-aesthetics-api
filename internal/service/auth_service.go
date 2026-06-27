@@ -36,7 +36,7 @@ func (service *AuthService) AuthenticateCustomer(ctx context.Context, payload mo
 		return model.TokensOutput{}, exception.ErrSysInvalidCredential
 	}
 
-	tokens, err := service.authService.GenerateToken(customer.ID.String(), "customer")
+	tokens, err := service.authService.GenerateToken(customer.ID.String(), customer.Role)
 	if err != nil {
 		return model.TokensOutput{}, err
 	}
@@ -45,6 +45,7 @@ func (service *AuthService) AuthenticateCustomer(ctx context.Context, payload mo
 
 	savedToken, err := service.authRepository.SaveRefreshToken(ctx, database.SaveRefreshTokenParams{
 		CustomerID: customer.ID.String(),
+		Role:       customer.Role,
 		TokenHash:  hashedToken,
 		ExpiresAt:  time.Now().Add(7 * 24 * time.Hour), // Valid for 1 week
 	})
@@ -75,7 +76,7 @@ func (service *AuthService) RotationRefreshToken(ctx context.Context, token stri
 		return model.TokensOutput{}, exception.ErrSysExpiredToken
 	}
 
-	newPairToken, err := service.authService.GenerateToken(foundToken.CustomerID, "customer")
+	newPairToken, err := service.authService.GenerateToken(foundToken.CustomerID, foundToken.Role)
 	if err != nil {
 		return model.TokensOutput{}, err
 	}
@@ -84,6 +85,7 @@ func (service *AuthService) RotationRefreshToken(ctx context.Context, token stri
 
 	_, err = service.authRepository.SaveRefreshToken(ctx, database.SaveRefreshTokenParams{
 		CustomerID: foundToken.ID.String(),
+		Role:       foundToken.Role,
 		TokenHash:  hashedRefreshToken,
 		ExpiresAt:  time.Now().Add(7 * 24 * time.Hour), // Valid for 1 week
 	})

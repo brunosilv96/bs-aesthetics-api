@@ -11,7 +11,7 @@ import (
 )
 
 const findRefreshToken = `-- name: FindRefreshToken :one
-SELECT id, customer_id, token_hash, expires_at, created_at FROM refresh_tokens WHERE token_hash = $1
+SELECT id, customer_id, role, token_hash, expires_at, created_at FROM refresh_tokens WHERE token_hash = $1
 `
 
 func (q *Queries) FindRefreshToken(ctx context.Context, tokenHash string) (RefreshToken, error) {
@@ -20,6 +20,7 @@ func (q *Queries) FindRefreshToken(ctx context.Context, tokenHash string) (Refre
 	err := row.Scan(
 		&i.ID,
 		&i.CustomerID,
+		&i.Role,
 		&i.TokenHash,
 		&i.ExpiresAt,
 		&i.CreatedAt,
@@ -39,22 +40,29 @@ func (q *Queries) InvalidRefreshToken(ctx context.Context, tokenHash string) err
 }
 
 const saveRefreshToken = `-- name: SaveRefreshToken :one
-INSERT INTO refresh_tokens (customer_id, token_hash, expires_at, created_at)
-VALUES ($1, $2, $3, NOW()) RETURNING id, customer_id, token_hash, expires_at, created_at
+INSERT INTO refresh_tokens (customer_id, role, token_hash, expires_at, created_at)
+VALUES ($1, $2, $3, $4, NOW()) RETURNING id, customer_id, role, token_hash, expires_at, created_at
 `
 
 type SaveRefreshTokenParams struct {
 	CustomerID string    `json:"customer_id"`
+	Role       string    `json:"role"`
 	TokenHash  string    `json:"token_hash"`
 	ExpiresAt  time.Time `json:"expires_at"`
 }
 
 func (q *Queries) SaveRefreshToken(ctx context.Context, arg SaveRefreshTokenParams) (RefreshToken, error) {
-	row := q.db.QueryRow(ctx, saveRefreshToken, arg.CustomerID, arg.TokenHash, arg.ExpiresAt)
+	row := q.db.QueryRow(ctx, saveRefreshToken,
+		arg.CustomerID,
+		arg.Role,
+		arg.TokenHash,
+		arg.ExpiresAt,
+	)
 	var i RefreshToken
 	err := row.Scan(
 		&i.ID,
 		&i.CustomerID,
+		&i.Role,
 		&i.TokenHash,
 		&i.ExpiresAt,
 		&i.CreatedAt,

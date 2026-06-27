@@ -1,6 +1,6 @@
 -- name: SaveRefreshToken :one
-INSERT INTO refresh_tokens (customer_id, token_hash, expires_at, created_at)
-VALUES ($1, $2, $3, NOW()) RETURNING *;
+INSERT INTO refresh_tokens (customer_id, role, token_hash, expires_at, created_at)
+VALUES ($1, $2, $3, $4, NOW()) RETURNING *;
 
 -- name: FindRefreshToken :one
 SELECT * FROM refresh_tokens WHERE token_hash = $1;

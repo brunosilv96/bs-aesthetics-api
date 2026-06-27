@@ -43,12 +43,15 @@ func main() {
 	// Dependency Injection
 	customerRepository := repository.NewCustomerRepository(store)
 	authRepository := repository.NewAuthRepository(store)
+	procedureRepository := repository.NewProcedureRepository(store)
 
 	customerService := service.NewCustomerService(*customerRepository)
 	authService := service.NewAuthService(*tokenService, *authRepository, *customerService)
+	procedureService := service.NewProcedureService(*customerRepository, *procedureRepository)
 
 	customerHandler := handler.NewCustomerHandler(*customerService)
 	authHandler := handler.NewAuthHandler(*authService)
+	procedureHandler := handler.NewProcedureHandler(*procedureService)
 
 	// Server Config
 	r := gin.New()
@@ -63,6 +66,7 @@ func main() {
 	router.HealthCheckRouter(r)
 	router.CustomerRouter(r, *customerHandler, *authMiddleware)
 	router.AuthRouter(r, *authHandler)
+	router.ProcedureRouter(r, *procedureHandler, *authMiddleware)
 
 	if err := r.Run(":8080"); err != nil {
 		log.Fatal("Error to initialize server: ", err)

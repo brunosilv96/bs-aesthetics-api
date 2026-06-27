@@ -12,8 +12,10 @@ import (
 
 type Querier interface {
 	CreateCustomer(ctx context.Context, arg CreateCustomerParams) (Customer, error)
+	CreateProcedure(ctx context.Context, arg CreateProcedureParams) (Procedure, error)
 	FindCustomerByEmail(ctx context.Context, email string) (Customer, error)
 	FindCustomerByID(ctx context.Context, id pgtype.UUID) (Customer, error)
+	FindProcedureByID(ctx context.Context, id pgtype.UUID) (Procedure, error)
 	FindRefreshToken(ctx context.Context, tokenHash string) (RefreshToken, error)
 	InvalidRefreshToken(ctx context.Context, tokenHash string) error
 	LoadCustomers(ctx context.Context) ([]Customer, error)
