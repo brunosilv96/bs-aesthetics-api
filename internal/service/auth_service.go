@@ -84,7 +84,7 @@ func (service *AuthService) RotationRefreshToken(ctx context.Context, token stri
 	hashedRefreshToken := service.authService.HashRefreshToken(newPairToken.RefreshToken)
 
 	_, err = service.authRepository.SaveRefreshToken(ctx, database.SaveRefreshTokenParams{
-		CustomerID: foundToken.ID.String(),
+		CustomerID: foundToken.CustomerID,
 		Role:       foundToken.Role,
 		TokenHash:  hashedRefreshToken,
 		ExpiresAt:  time.Now().Add(7 * 24 * time.Hour), // Valid for 1 week
