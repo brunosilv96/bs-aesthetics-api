@@ -4,7 +4,6 @@ import (
 	"context"
 
 	database "github.com/brunosilv96/bs-aesthetics-api/database/sqlc"
-	"github.com/brunosilv96/bs-aesthetics-api/internal/auth"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/exception"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/model"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/repository"
@@ -24,18 +23,18 @@ func NewProcedureService(customerRepository repository.CustomerRepository, proce
 	}
 }
 
-func (service *ProcedureService) Register(ctx context.Context, identity *auth.Identity, payload model.RegisterProcedure) (database.Procedure, error) {
+func (service *ProcedureService) Register(ctx context.Context, identity *model.Identity, payload model.RegisterProcedure) (*database.Procedure, error) {
 	if identity.Role != "admin" {
-		return database.Procedure{}, exception.ErrSysForbidden
+		return nil, exception.ErrSysForbidden
 	}
 
 	if payload.Price < 0 {
-		return database.Procedure{}, exception.ErrSysInvalidInput
+		return nil, exception.ErrSysInvalidInput
 	}
 
 	parsedID, err := uuid.Parse(identity.CustomerID)
 	if err != nil {
-		return database.Procedure{}, exception.ErrSysParse
+		return nil, exception.ErrSysParse
 	}
 
 	customer, err := service.customerRepository.FindByID(ctx, pgtype.UUID{
@@ -43,12 +42,12 @@ func (service *ProcedureService) Register(ctx context.Context, identity *auth.Id
 		Valid: true,
 	})
 	if err != nil {
-		return database.Procedure{}, err
+		return nil, err
 	}
 
 	_, err = service.procedureRepository.FindByID(ctx, customer.ID)
 	if err != nil && err != exception.ErrSysNotFound {
-		return database.Procedure{}, err
+		return nil, err
 	}
 
 	createdProcedure, err := service.procedureRepository.Save(ctx, database.CreateProcedureParams{
@@ -64,5 +63,5 @@ func (service *ProcedureService) Register(ctx context.Context, identity *auth.Id
 		Available:       payload.Available,
 	})
 
-	return createdProcedure, nil
+	return &createdProcedure, nil
 }

@@ -1,4 +1,4 @@
-package auth
+package pkg
 
 import (
 	"crypto/rand"
@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/brunosilv96/bs-aesthetics-api/internal/exception"
+	"github.com/brunosilv96/bs-aesthetics-api/internal/model"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -33,7 +34,7 @@ func NewTokenService(secret, issuer string) *TokenService {
 
 func (service *TokenService) GenerateToken(customerID, role string) (*TokenPair, error) {
 	// 1. Generate Access Token (JWT)
-	claims := CustomClaim{
+	claims := model.CustomClaim{
 		CustomerID: customerID,
 		Role:       role,
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -75,7 +76,7 @@ func (service *TokenService) HashRefreshToken(token string) string {
 	return hex.EncodeToString(hash[:])
 }
 
-func (service *TokenService) ValidateAccessToken(encryptedToken string) (*CustomClaim, error) {
+func (service *TokenService) ValidateAccessToken(encryptedToken string) (*model.CustomClaim, error) {
 	token, err := jwt.Parse(encryptedToken, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			slog.Error("error on verify token assigning, most different")
@@ -95,7 +96,7 @@ func (service *TokenService) ValidateAccessToken(encryptedToken string) (*Custom
 		return nil, exception.ErrSysInvalidToken
 	}
 
-	return &CustomClaim{
+	return &model.CustomClaim{
 		CustomerID: claims["customer_id"].(string),
 		Role:       claims["role"].(string),
 	}, nil

@@ -7,7 +7,6 @@ import (
 
 	"github.com/brunosilv96/bs-aesthetics-api/config"
 	database "github.com/brunosilv96/bs-aesthetics-api/database/sqlc"
-	"github.com/brunosilv96/bs-aesthetics-api/internal/auth"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/exception"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/handler"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/middleware"
@@ -27,7 +26,7 @@ func main() {
 	logger := pkg.New()
 
 	slog.SetDefault(logger)
-	tokenService := auth.NewTokenService(cfg.JwtSecret, "bs-aesthetics-api")
+	tokenService := pkg.NewTokenService(cfg.JwtSecret, "bs-aesthetics-api")
 
 	slog.Info("Server starting...")
 

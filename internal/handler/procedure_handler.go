@@ -5,7 +5,6 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/brunosilv96/bs-aesthetics-api/internal/auth"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/exception"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/model"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/service"
@@ -32,7 +31,7 @@ func (handler *ProcedureHandler) Create(c *gin.Context) {
 		return
 	}
 
-	identity, ok := authIdentity.(*auth.Identity)
+	identity, ok := authIdentity.(*model.Identity)
 	if !ok {
 		slog.Error("error on extract customer_id or role on token")
 		c.Error(exception.ErrUnauthorized)

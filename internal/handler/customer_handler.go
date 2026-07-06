@@ -64,7 +64,7 @@ func (handler CustomerHandler) Customers(c *gin.Context) {
 	}
 
 	customerList := []model.CustomerResponse{}
-	for _, customer := range customers {
+	for _, customer := range *customers {
 		customerList = append(customerList, model.CustomerResponse{
 			ID:        customer.ID.String(),
 			Name:      customer.Name,

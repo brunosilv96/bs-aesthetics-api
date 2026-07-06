@@ -3,16 +3,17 @@ package middleware
 import (
 	"strings"
 
-	"github.com/brunosilv96/bs-aesthetics-api/internal/auth"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/exception"
+	"github.com/brunosilv96/bs-aesthetics-api/internal/model"
+	"github.com/brunosilv96/bs-aesthetics-api/pkg"
 	"github.com/gin-gonic/gin"
 )
 
 type AccessTokenMiddleware struct {
-	tokenService auth.TokenService
+	tokenService pkg.TokenService
 }
 
-func NewAccessTokenMiddleware(tokenService auth.TokenService) *AccessTokenMiddleware {
+func NewAccessTokenMiddleware(tokenService pkg.TokenService) *AccessTokenMiddleware {
 	return &AccessTokenMiddleware{
 		tokenService: tokenService,
 	}
@@ -47,7 +48,7 @@ func (middleware *AccessTokenMiddleware) RequireAuth() gin.HandlerFunc {
 			return
 		}
 
-		c.Set("auth_identity", &auth.Identity{
+		c.Set("auth_identity", &model.Identity{
 			CustomerID: claims.CustomerID,
 			Role:       claims.Role,
 		})

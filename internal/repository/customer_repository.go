@@ -22,52 +22,52 @@ func NewCustomerRepository(db database.Querier) *CustomerRepository {
 	}
 }
 
-func (repository CustomerRepository) Save(ctx context.Context, payload database.CreateCustomerParams) (database.Customer, error) {
+func (repository CustomerRepository) Save(ctx context.Context, payload database.CreateCustomerParams) (*database.Customer, error) {
 	customer, err := repository.db.CreateCustomer(ctx, payload)
 	if err != nil {
 		slog.Error("[BD] error on save customer", "error:", err)
-		return database.Customer{}, fmt.Errorf("%v - DB Error: %w", exception.ErrSysInternal, err)
+		return nil, fmt.Errorf("%v - DB Error: %w", exception.ErrSysInternal, err)
 	}
 
-	return customer, nil
+	return &customer, nil
 }
 
-func (repository CustomerRepository) List(ctx context.Context) ([]database.Customer, error) {
+func (repository CustomerRepository) List(ctx context.Context) (*[]database.Customer, error) {
 	customers, err := repository.db.LoadCustomers(ctx)
 	if err != nil {
 		slog.Error("[BD] error on load customer list in database", "pgx error:", err)
-		return []database.Customer{}, fmt.Errorf("%v - DB Error: %w", exception.ErrSysInternal, err)
+		return nil, fmt.Errorf("%v - DB Error: %w", exception.ErrSysInternal, err)
 	}
 
-	return customers, nil
+	return &customers, nil
 }
 
-func (repository CustomerRepository) FindByID(ctx context.Context, id pgtype.UUID) (database.Customer, error) {
+func (repository CustomerRepository) FindByID(ctx context.Context, id pgtype.UUID) (*database.Customer, error) {
 	customer, err := repository.db.FindCustomerByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return database.Customer{}, exception.ErrSysNotFound
+			return nil, exception.ErrSysNotFound
 		}
 
 		slog.Error("[BD] error on load customer by id in database", "id:", id, "pgx error:", err)
-		return database.Customer{}, fmt.Errorf("%v - DB Error: %w", exception.ErrSysInternal, err)
+		return nil, fmt.Errorf("%v - DB Error: %w", exception.ErrSysInternal, err)
 	}
 
-	return customer, nil
+	return &customer, nil
 }
 
-func (repository CustomerRepository) FindByEmail(ctx context.Context, email string) (database.Customer, error) {
+func (repository CustomerRepository) FindByEmail(ctx context.Context, email string) (*database.Customer, error) {
 	customer, err := repository.db.FindCustomerByEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return database.Customer{}, exception.ErrSysNotFound
+			return nil, exception.ErrSysNotFound
 		}
 
 		slog.Error("[BD] error on load customer by id in database", "email:", email, "pgx error:", err)
-		return database.Customer{}, fmt.Errorf("%v - DB Error: %w", exception.ErrSysInternal, err)
+		return nil, fmt.Errorf("%v - DB Error: %w", exception.ErrSysInternal, err)
 	}
 
-	return customer, nil
+	return &customer, nil
 }
 
 func (repository CustomerRepository) SoftDelete(ctx context.Context, id pgtype.UUID) error {
