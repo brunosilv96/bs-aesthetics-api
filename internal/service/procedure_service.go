@@ -4,7 +4,7 @@ import (
 	"context"
 
 	database "github.com/brunosilv96/bs-aesthetics-api/database/sqlc"
-	"github.com/brunosilv96/bs-aesthetics-api/internal/exception"
+	"github.com/brunosilv96/bs-aesthetics-api/internal/apperrors"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/model"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/repository"
 	"github.com/google/uuid"
@@ -25,16 +25,16 @@ func NewProcedureService(customerRepository repository.CustomerRepository, proce
 
 func (service *ProcedureService) Register(ctx context.Context, identity *model.Identity, payload model.RegisterProcedure) (*database.Procedure, error) {
 	if identity.Role != "admin" {
-		return nil, exception.ErrSysForbidden
+		return nil, apperrors.ErrSysForbidden
 	}
 
 	if payload.Price < 0 {
-		return nil, exception.ErrSysInvalidInput
+		return nil, apperrors.ErrSysInvalidInput
 	}
 
 	parsedID, err := uuid.Parse(identity.CustomerID)
 	if err != nil {
-		return nil, exception.ErrSysParse
+		return nil, apperrors.ErrSysParse
 	}
 
 	customer, err := service.customerRepository.FindByID(ctx, pgtype.UUID{
@@ -46,7 +46,7 @@ func (service *ProcedureService) Register(ctx context.Context, identity *model.I
 	}
 
 	_, err = service.procedureRepository.FindByID(ctx, customer.ID)
-	if err != nil && err != exception.ErrSysNotFound {
+	if err != nil && err != apperrors.ErrSysNotFound {
 		return nil, err
 	}
 

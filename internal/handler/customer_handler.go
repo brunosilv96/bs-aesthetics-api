@@ -6,45 +6,49 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/brunosilv96/bs-aesthetics-api/internal/exception"
+	"github.com/brunosilv96/bs-aesthetics-api/internal/apperrors"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/model"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/service"
 	"github.com/gin-gonic/gin"
 )
 
 type CustomerHandler struct {
-	service service.CustomerService
+	customerService service.CustomerService
 }
 
 func NewCustomerHandler(service service.CustomerService) *CustomerHandler {
 	return &CustomerHandler{
-		service: service,
+		customerService: service,
 	}
 }
 
 func (handler CustomerHandler) RegisterCustomer(c *gin.Context) {
+	ctx := c.Request.Context()
 	var payload model.CreateCustomer
 
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		slog.Error("error on bind body payload", "error", err)
-		exception.BadRequestErrorHandler(c, err)
+		c.Error(
+			apperrors.ErrInvalidInput.
+				WithDetails(apperrors.PayloadValidator(err)),
+		)
 		return
 	}
 
-	customer, err := handler.service.Register(c, payload)
+	customer, err := handler.customerService.Register(ctx, payload)
 	if err != nil {
-		if errors.Is(err, exception.ErrSysAlreadyExists) {
+		if errors.Is(err, apperrors.ErrSysAlreadyExists) {
 			slog.Error("error on register customer, email already registered", "error", err)
-			c.Error(exception.ErrConflict)
+			c.Error(apperrors.ErrConflict)
 			return
 		}
 
 		slog.Error("error on register customer", "error", err)
-		c.Error(exception.ErrInternal)
+		c.Error(apperrors.ErrUnprocessableEntity)
 		return
 	}
 
-	c.JSON(http.StatusCreated, model.CustomerResponse{
+	c.JSON(http.StatusCreated, &model.CustomerResponse{
 		ID:        customer.ID.String(),
 		Name:      customer.Name,
 		Email:     customer.Email,
@@ -56,10 +60,12 @@ func (handler CustomerHandler) RegisterCustomer(c *gin.Context) {
 }
 
 func (handler CustomerHandler) Customers(c *gin.Context) {
-	customers, err := handler.service.List(c)
+	ctx := c.Request.Context()
+
+	customers, err := handler.customerService.List(ctx)
 	if err != nil {
 		slog.Error("Error on load customer list", "error", err)
-		c.Error(exception.ErrInternal)
+		c.Error(apperrors.ErrUnprocessableEntity)
 		return
 	}
 
@@ -82,23 +88,25 @@ func (handler CustomerHandler) Customers(c *gin.Context) {
 }
 
 func (handler CustomerHandler) CustomerByID(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	id := c.Param("id")
 	if id == "" {
 		slog.Error("parameter ID is empty")
-		c.Error(exception.ErrInvalidUUID)
+		c.Error(apperrors.ErrInvalidUUID)
 		return
 	}
 
-	customer, err := handler.service.FindByID(c, id)
+	customer, err := handler.customerService.FindByID(ctx, id)
 	if err != nil {
-		if errors.Is(err, exception.ErrNotFound) {
+		if errors.Is(err, apperrors.ErrNotFound) {
 			slog.Error("customer not found", "id", id, "error", err)
-			c.Error(exception.ErrNotFound)
+			c.Error(apperrors.ErrNotFound)
 			return
 		}
 
 		slog.Error("error on find customer by id", "id", id, "error", err)
-		c.Error(exception.ErrInternal)
+		c.Error(apperrors.ErrUnprocessableEntity)
 		return
 	}
 
@@ -119,20 +127,20 @@ func (handler CustomerHandler) DisableCustomer(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
 		slog.Error("parameter ID is empty")
-		c.Error(exception.ErrInvalidUUID)
+		c.Error(apperrors.ErrInvalidUUID)
 		return
 	}
 
-	err := handler.service.Delete(c, id)
+	err := handler.customerService.Delete(c, id)
 	if err != nil {
-		if errors.Is(err, exception.ErrNotFound) {
+		if errors.Is(err, apperrors.ErrNotFound) {
 			slog.Error("customer not found", "id", id, "error", err)
-			c.Error(exception.ErrNotFound)
+			c.Error(apperrors.ErrNotFound)
 			return
 		}
 
 		slog.Error("failed to disable customer", "id", id, "error", err)
-		c.Error(exception.ErrInternal)
+		c.Error(apperrors.ErrUnprocessableEntity)
 		return
 	}
 
@@ -143,7 +151,7 @@ func (handler CustomerHandler) UpdateCustomer(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
 		slog.Error("parameter ID is empty")
-		c.Error(exception.ErrInvalidUUID)
+		c.Error(apperrors.ErrInvalidUUID)
 		return
 	}
 
@@ -151,7 +159,10 @@ func (handler CustomerHandler) UpdateCustomer(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		slog.Error("error on bind body payload", "error", err)
-		exception.BadRequestErrorHandler(c, err)
+		c.Error(
+			apperrors.ErrInvalidInput.
+				WithDetails(apperrors.PayloadValidator(err)),
+		)
 		return
 	}
 
@@ -159,21 +170,21 @@ func (handler CustomerHandler) UpdateCustomer(c *gin.Context) {
 		_, err := time.Parse("2006-01-02", *payload.Birthdate)
 		if err != nil {
 			slog.Error("error on bind body payload", "error", err)
-			c.Error(exception.ErrInvalidInput)
+			c.Error(apperrors.ErrInvalidInput)
 			return
 		}
 	}
 
-	customer, err := handler.service.Update(c, id, payload)
+	customer, err := handler.customerService.Update(c, id, payload)
 	if err != nil {
-		if errors.Is(err, exception.ErrNotFound) {
+		if errors.Is(err, apperrors.ErrNotFound) {
 			slog.Error("customer not found", "id", id, "error", err)
-			c.Error(exception.ErrNotFound)
+			c.Error(apperrors.ErrNotFound)
 			return
 		}
 
 		slog.Error("failed to update customer", "id", id, "error", err)
-		c.Error(exception.ErrBadRequest)
+		c.Error(apperrors.ErrBadRequest)
 		return
 	}
 

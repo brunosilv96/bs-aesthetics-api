@@ -5,7 +5,7 @@ import (
 	"time"
 
 	database "github.com/brunosilv96/bs-aesthetics-api/database/sqlc"
-	"github.com/brunosilv96/bs-aesthetics-api/internal/exception"
+	"github.com/brunosilv96/bs-aesthetics-api/internal/apperrors"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/model"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/repository"
 	"github.com/brunosilv96/bs-aesthetics-api/pkg"
@@ -33,7 +33,7 @@ func (service *AuthService) AuthenticateCustomer(ctx context.Context, payload mo
 
 	isPasswordValid := pkg.CheckPasswordHash(payload.Password, customer.Password)
 	if !isPasswordValid {
-		return nil, exception.ErrSysInvalidCredential
+		return nil, apperrors.ErrSysInvalidCredential
 	}
 
 	tokens, err := service.authService.GenerateToken(customer.ID.String(), customer.Role)
@@ -69,11 +69,11 @@ func (service *AuthService) RotationRefreshToken(ctx context.Context, token stri
 	}
 
 	if hashedToken != foundToken.TokenHash {
-		return nil, exception.ErrSysInvalidToken
+		return nil, apperrors.ErrSysInvalidToken
 	}
 
 	if time.Now().After(foundToken.ExpiresAt) {
-		return nil, exception.ErrSysExpiredToken
+		return nil, apperrors.ErrSysExpiredToken
 	}
 
 	newPairToken, err := service.authService.GenerateToken(foundToken.CustomerID, foundToken.Role)
@@ -114,7 +114,7 @@ func (service *AuthService) Logoff(ctx context.Context, token string) error {
 	}
 
 	if hashedToken != foundToken.TokenHash {
-		return exception.ErrSysInvalidToken
+		return apperrors.ErrSysInvalidToken
 	}
 
 	err = service.authRepository.InvalidRefreshToken(ctx, hashedToken)

@@ -6,8 +6,9 @@ type AuthRequest struct {
 }
 
 type TokenResponse struct {
-	CustomerID  string `json:"customer_id"`
-	AccessToken string `json:"access_token"`
+	CustomerID   string `json:"customer_id"`
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
 }
 
 type TokensOutput struct {

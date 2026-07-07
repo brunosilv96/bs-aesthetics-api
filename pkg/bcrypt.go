@@ -3,7 +3,7 @@ package pkg
 import (
 	"log/slog"
 
-	"github.com/brunosilv96/bs-aesthetics-api/internal/exception"
+	"github.com/brunosilv96/bs-aesthetics-api/internal/apperrors"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -11,7 +11,7 @@ func HashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		slog.Error("Error to hash password", "error:", err)
-		return "", exception.ErrSysGenerate
+		return "", apperrors.ErrSysGenerate
 	}
 
 	return string(bytes), nil

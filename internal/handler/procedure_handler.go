@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/brunosilv96/bs-aesthetics-api/internal/exception"
+	"github.com/brunosilv96/bs-aesthetics-api/internal/apperrors"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/model"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/service"
 	"github.com/gin-gonic/gin"
@@ -27,45 +27,48 @@ func (handler *ProcedureHandler) Create(c *gin.Context) {
 	authIdentity, exists := c.Get("auth_identity")
 	if !exists {
 		slog.Error("error on extract customer_id or role on token")
-		c.Error(exception.ErrUnauthorized)
+		c.Error(apperrors.ErrUnauthorized)
 		return
 	}
 
 	identity, ok := authIdentity.(*model.Identity)
 	if !ok {
 		slog.Error("error on extract customer_id or role on token")
-		c.Error(exception.ErrUnauthorized)
+		c.Error(apperrors.ErrUnauthorized)
 		return
 	}
 
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		slog.Error("error on bind body payload", "error", err)
-		exception.BadRequestErrorHandler(c, err)
+		c.Error(
+			apperrors.ErrInvalidInput.
+				WithDetails(apperrors.PayloadValidator(err)),
+		)
 		return
 	}
 
 	procedure, err := handler.procedureService.Register(c, identity, payload)
 	if err != nil {
-		if errors.Is(exception.ErrSysNotFound, err) {
+		if errors.Is(apperrors.ErrSysNotFound, err) {
 			slog.Error("customer id not found", "error: ", err)
-			c.Error(exception.ErrNotFound)
+			c.Error(apperrors.ErrNotFound)
 			return
 		}
 
-		if errors.Is(exception.ErrSysForbidden, err) {
+		if errors.Is(apperrors.ErrSysForbidden, err) {
 			slog.Error("customer is forbidden or unauthorized", "error: ", err)
-			c.Error(exception.ErrForbidden)
+			c.Error(apperrors.ErrForbidden)
 			return
 		}
 
-		if errors.Is(exception.ErrSysInvalidInput, err) {
+		if errors.Is(apperrors.ErrSysInvalidInput, err) {
 			slog.Error("invalid input or use case violate", "error: ", err)
-			c.Error(exception.ErrInvalidInput)
+			c.Error(apperrors.ErrInvalidInput)
 			return
 		}
 
 		slog.Error("error on register new procedure", "error", err)
-		c.Error(exception.ErrInternal)
+		c.Error(apperrors.ErrUnprocessableEntity)
 		return
 	}
 

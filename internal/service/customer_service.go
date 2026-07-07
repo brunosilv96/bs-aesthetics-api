@@ -5,7 +5,7 @@ import (
 	"time"
 
 	database "github.com/brunosilv96/bs-aesthetics-api/database/sqlc"
-	"github.com/brunosilv96/bs-aesthetics-api/internal/exception"
+	"github.com/brunosilv96/bs-aesthetics-api/internal/apperrors"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/model"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/repository"
 	"github.com/brunosilv96/bs-aesthetics-api/pkg"
@@ -25,12 +25,12 @@ func NewCustomerService(repository repository.CustomerRepository) *CustomerServi
 
 func (service CustomerService) Register(ctx context.Context, payload model.CreateCustomer) (*database.Customer, error) {
 	foundCustomer, err := service.repository.FindByEmail(ctx, payload.Email)
-	if err != nil && err != exception.ErrSysNotFound {
+	if err != nil && err != apperrors.ErrSysNotFound {
 		return nil, err
 	}
 
-	if foundCustomer.Email == payload.Email {
-		return nil, exception.ErrSysAlreadyExists
+	if foundCustomer != nil {
+		return nil, apperrors.ErrSysAlreadyExists
 	}
 
 	hashedPassword, err := pkg.HashPassword(payload.Password)
@@ -40,7 +40,7 @@ func (service CustomerService) Register(ctx context.Context, payload model.Creat
 
 	birthdate, err := time.Parse("2006-01-02", payload.Birthdate)
 	if err != nil {
-		return nil, exception.ErrSysParse
+		return nil, apperrors.ErrSysParse
 	}
 
 	customer, err := service.repository.Save(ctx, database.CreateCustomerParams{
@@ -73,7 +73,7 @@ func (service CustomerService) List(ctx context.Context) (*[]database.Customer, 
 func (service CustomerService) FindByID(ctx context.Context, id string) (*database.Customer, error) {
 	parsedID, err := uuid.Parse(id)
 	if err != nil {
-		return nil, exception.ErrSysParse
+		return nil, apperrors.ErrSysParse
 	}
 
 	customer, err := service.repository.FindByID(ctx, pgtype.UUID{
@@ -90,7 +90,7 @@ func (service CustomerService) FindByID(ctx context.Context, id string) (*databa
 func (service CustomerService) Delete(ctx context.Context, id string) error {
 	parsedID, err := uuid.Parse(id)
 	if err != nil {
-		return exception.ErrSysParse
+		return apperrors.ErrSysParse
 	}
 
 	customer, err := service.repository.FindByID(ctx, pgtype.UUID{
@@ -112,7 +112,7 @@ func (service CustomerService) Delete(ctx context.Context, id string) error {
 func (service CustomerService) Update(ctx context.Context, id string, payload model.UpdateCustomer) (*database.Customer, error) {
 	parsedID, err := uuid.Parse(id)
 	if err != nil {
-		return nil, exception.ErrSysParse
+		return nil, apperrors.ErrSysParse
 	}
 
 	customer, err := service.repository.FindByID(ctx, pgtype.UUID{
@@ -142,7 +142,7 @@ func (service CustomerService) Update(ctx context.Context, id string, payload mo
 	if payload.Birthdate != nil {
 		birthdate, err := time.Parse("2006-01-02", *payload.Birthdate)
 		if err != nil {
-			return nil, exception.ErrSysParse
+			return nil, apperrors.ErrSysParse
 		}
 
 		customer.Birthdate = pgtype.Date{

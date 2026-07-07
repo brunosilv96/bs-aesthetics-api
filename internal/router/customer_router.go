@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func CustomerRouter(router *gin.Engine, handler handler.CustomerHandler, authMiddleware middleware.AccessTokenMiddleware) {
+func CustomerRouter(router *gin.Engine, handler handler.CustomerHandler, authMiddleware middleware.AuthMiddleware) {
 	route := router.Group("/customer")
 
 	// Public Routes

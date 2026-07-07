@@ -6,7 +6,7 @@ import (
 	"log/slog"
 
 	database "github.com/brunosilv96/bs-aesthetics-api/database/sqlc"
-	"github.com/brunosilv96/bs-aesthetics-api/internal/exception"
+	"github.com/brunosilv96/bs-aesthetics-api/internal/apperrors"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -35,7 +35,7 @@ func (repository *ProcedureRepository) FindByID(ctx context.Context, id pgtype.U
 	procedure, err := repository.db.FindProcedureByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return database.Procedure{}, exception.ErrSysNotFound
+			return database.Procedure{}, apperrors.ErrSysNotFound
 		}
 
 		slog.Error("[BD] error on load procedure by id in database", "id:", id, "pgx error:", err)

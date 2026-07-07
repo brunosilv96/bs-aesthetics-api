@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func ProcedureRouter(router *gin.Engine, handler handler.ProcedureHandler, authMiddleware middleware.AccessTokenMiddleware) {
+func ProcedureRouter(router *gin.Engine, handler handler.ProcedureHandler, authMiddleware middleware.AuthMiddleware) {
 	route := router.Group("/procedure")
 
 	route.Use(authMiddleware.RequireAuth())

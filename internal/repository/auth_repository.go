@@ -7,7 +7,7 @@ import (
 	"log/slog"
 
 	database "github.com/brunosilv96/bs-aesthetics-api/database/sqlc"
-	"github.com/brunosilv96/bs-aesthetics-api/internal/exception"
+	"github.com/brunosilv96/bs-aesthetics-api/internal/apperrors"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -25,7 +25,7 @@ func (repository *AuthRepository) SaveRefreshToken(ctx context.Context, payload 
 	refreshToken, err := repository.db.SaveRefreshToken(ctx, payload)
 	if err != nil {
 		slog.Error("[BD] error on save refresh token in database", "DB error:", err)
-		return nil, fmt.Errorf("%v - DB Error: %w", exception.ErrSysInternal, err)
+		return nil, fmt.Errorf("%v - DB Error: %w", apperrors.ErrSysInternal, err)
 	}
 
 	return &refreshToken, nil
@@ -35,11 +35,11 @@ func (repository *AuthRepository) LoadRefreshToken(ctx context.Context, hashToke
 	refreshToken, err := repository.db.FindRefreshToken(ctx, hashToken)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, fmt.Errorf("%v - DB Error: %w", exception.ErrSysNotFound, err)
+			return nil, fmt.Errorf("%v - DB Error: %w", apperrors.ErrSysNotFound, err)
 		}
 
 		slog.Error("[BD] error on find refresh token in database", "DB error:", err)
-		return nil, fmt.Errorf("%v - DB Error: %w", exception.ErrSysInternal, err)
+		return nil, fmt.Errorf("%v - DB Error: %w", apperrors.ErrSysInternal, err)
 	}
 
 	return &refreshToken, nil
@@ -49,7 +49,7 @@ func (repository *AuthRepository) InvalidRefreshToken(ctx context.Context, hashT
 	err := repository.db.InvalidRefreshToken(ctx, hashToken)
 	if err != nil {
 		slog.Error("[BD] error on find refresh token in database", "DB error:", err)
-		return fmt.Errorf("%v - DB Error: %w", exception.ErrSysInternal, err)
+		return fmt.Errorf("%v - DB Error: %w", apperrors.ErrSysInternal, err)
 	}
 
 	return nil

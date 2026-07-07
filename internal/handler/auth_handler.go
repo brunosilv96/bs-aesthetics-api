@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/brunosilv96/bs-aesthetics-api/internal/exception"
+	"github.com/brunosilv96/bs-aesthetics-api/internal/apperrors"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/model"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/service"
 	"github.com/gin-gonic/gin"
@@ -26,26 +26,29 @@ func (handler *AuthHandler) Login(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		slog.Error("error on bind body payload", "error", err)
-		exception.BadRequestErrorHandler(c, err)
+		c.Error(
+			apperrors.ErrInvalidInput.
+				WithDetails(apperrors.PayloadValidator(err)),
+		)
 		return
 	}
 
 	tokens, err := handler.authService.AuthenticateCustomer(c, payload)
 	if err != nil {
-		if errors.Is(err, exception.ErrSysNotFound) {
+		if errors.Is(err, apperrors.ErrSysNotFound) {
 			slog.Error("customer not found", "email", payload.Email, "error", err)
-			c.Error(exception.ErrNotFound)
+			c.Error(apperrors.ErrInvalidCredentials)
 			return
 		}
 
-		if errors.Is(err, exception.ErrSysInvalidCredential) {
+		if errors.Is(err, apperrors.ErrSysInvalidCredential) {
 			slog.Error("customer email or password is invalid", "email", payload.Email, "error", err)
-			c.Error(exception.ErrInvalidCredentials)
+			c.Error(apperrors.ErrInvalidCredentials)
 			return
 		}
 
-		slog.Error("error on generate access for customer", "error", err)
-		c.Error(exception.ErrInternal)
+		slog.Error("error on authenticate customer", "error", err)
+		c.Error(apperrors.ErrUnprocessableEntity)
 		return
 	}
 
@@ -63,8 +66,9 @@ func (handler *AuthHandler) Login(c *gin.Context) {
 	c.Header("SameSite", "Strict")
 
 	c.JSON(http.StatusOK, model.TokenResponse{
-		CustomerID:  tokens.CustomerID,
-		AccessToken: tokens.AccessToken,
+		CustomerID:   tokens.CustomerID,
+		AccessToken:  tokens.AccessToken,
+		RefreshToken: tokens.RefreshToken,
 	})
 }
 
@@ -72,26 +76,26 @@ func (handler *AuthHandler) RefreshToken(c *gin.Context) {
 	refreshToken, err := c.Cookie("refresh_token")
 	if err != nil {
 		slog.Error("error recovery refresh token cookie", "error", err)
-		c.Error(exception.ErrInvalidToken)
+		c.Error(apperrors.ErrInvalidToken)
 		return
 	}
 
 	tokens, err := handler.authService.RotationRefreshToken(c, refreshToken)
 	if err != nil {
-		if errors.Is(err, exception.ErrSysNotFound) {
+		if errors.Is(err, apperrors.ErrSysNotFound) {
 			slog.Error("refresh token not found", "error", err)
-			c.Error(exception.ErrInvalidToken)
+			c.Error(apperrors.ErrInvalidToken)
 			return
 		}
 
-		if errors.Is(err, exception.ErrSysExpiredToken) {
+		if errors.Is(err, apperrors.ErrSysExpiredToken) {
 			slog.Error("refresh token has expired", "error", err)
-			c.Error(exception.ErrExpiredToken)
+			c.Error(apperrors.ErrExpiredToken)
 			return
 		}
 
 		slog.Error("error rotate refresh token", "error", err)
-		c.Error(exception.ErrInternal)
+		c.Error(apperrors.ErrUnprocessableEntity)
 		return
 	}
 
@@ -109,8 +113,9 @@ func (handler *AuthHandler) RefreshToken(c *gin.Context) {
 	c.Header("SameSite", "Strict")
 
 	c.JSON(http.StatusOK, model.TokenResponse{
-		CustomerID:  tokens.CustomerID,
-		AccessToken: tokens.AccessToken,
+		CustomerID:   tokens.CustomerID,
+		AccessToken:  tokens.AccessToken,
+		RefreshToken: tokens.RefreshToken,
 	})
 }
 
@@ -123,20 +128,20 @@ func (handler *AuthHandler) Logout(c *gin.Context) {
 
 	err = handler.authService.Logoff(c, refreshToken)
 	if err != nil {
-		if errors.Is(err, exception.ErrSysNotFound) {
+		if errors.Is(err, apperrors.ErrSysNotFound) {
 			slog.Error("refresh token not found", "error", err)
-			c.Error(exception.ErrInvalidToken)
+			c.Error(apperrors.ErrInvalidToken)
 			return
 		}
 
-		if errors.Is(err, exception.ErrSysExpiredToken) {
+		if errors.Is(err, apperrors.ErrSysExpiredToken) {
 			slog.Error("refresh token has expired", "error", err)
-			c.Error(exception.ErrExpiredToken)
+			c.Error(apperrors.ErrExpiredToken)
 			return
 		}
 
 		slog.Error("error on invalidate refresh token", "error", err)
-		c.Error(exception.ErrInternal)
+		c.Error(apperrors.ErrUnprocessableEntity)
 		return
 	}
 

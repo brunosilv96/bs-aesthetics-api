@@ -4,10 +4,11 @@ import (
 	"context"
 	"log"
 	"log/slog"
+	"net/http"
+	"time"
 
 	"github.com/brunosilv96/bs-aesthetics-api/config"
 	database "github.com/brunosilv96/bs-aesthetics-api/database/sqlc"
-	"github.com/brunosilv96/bs-aesthetics-api/internal/exception"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/handler"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/middleware"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/repository"
@@ -59,7 +60,8 @@ func main() {
 
 	// Middlewares
 	r.Use(gin.Logger())
-	r.Use(exception.ErrorHandler())
+	r.Use(middleware.ErrorHandler())
+	r.Use(middleware.TimeoutMiddleware(10 * time.Second))
 	authMiddleware := middleware.NewAccessTokenMiddleware(*tokenService)
 
 	router.HealthCheckRouter(r)
@@ -67,7 +69,18 @@ func main() {
 	router.AuthRouter(r, *authHandler)
 	router.ProcedureRouter(r, *procedureHandler, *authMiddleware)
 
-	if err := r.Run(":8080"); err != nil {
+	server := &http.Server{
+		Addr:              ":8080",
+		Handler:           r,
+		ReadTimeout:       10 * time.Second,
+		ReadHeaderTimeout: 5 * time.Second,
+		WriteTimeout:      20 * time.Second,
+		IdleTimeout:       60 * time.Second,
+	}
+
+	slog.Info("HTTP server started", "addr", server.Addr)
+
+	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatal("Error to initialize server: ", err)
 	}
 }
