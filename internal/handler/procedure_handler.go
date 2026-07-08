@@ -72,7 +72,7 @@ func (handler *ProcedureHandler) Create(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, model.ProcedureResponse{
+	c.JSON(http.StatusCreated, &model.ProcedureResponse{
 		ID:              procedure.ID.String(),
 		RegisteredBy:    procedure.RegistredBy.String(),
 		Name:            procedure.Name,

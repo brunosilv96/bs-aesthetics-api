@@ -39,7 +39,7 @@ func (handler CustomerHandler) RegisterCustomer(c *gin.Context) {
 	if err != nil {
 		if errors.Is(err, apperrors.ErrSysAlreadyExists) {
 			slog.Error("error on register customer, email already registered", "error", err)
-			c.Error(apperrors.ErrConflict)
+			c.Error(apperrors.ErrConflict.WithMessage("email already registered"))
 			return
 		}
 

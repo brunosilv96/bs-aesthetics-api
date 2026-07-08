@@ -48,7 +48,7 @@ func (service CustomerService) Register(ctx context.Context, payload model.Creat
 		Email:    payload.Email,
 		Phone:    payload.Phone,
 		Password: hashedPassword,
-		Role:     payload.Role,
+		Role:     "customer",
 		Birthdate: pgtype.Date{
 			Time:  birthdate,
 			Valid: true,
@@ -133,10 +133,6 @@ func (service CustomerService) Update(ctx context.Context, id string, payload mo
 
 	if payload.Phone != nil {
 		customer.Phone = *payload.Phone
-	}
-
-	if payload.Role != nil {
-		customer.Role = *payload.Role
 	}
 
 	if payload.Birthdate != nil {
