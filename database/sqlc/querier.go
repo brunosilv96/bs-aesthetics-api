@@ -19,6 +19,7 @@ type Querier interface {
 	FindRefreshToken(ctx context.Context, tokenHash string) (RefreshToken, error)
 	InvalidRefreshToken(ctx context.Context, tokenHash string) error
 	LoadCustomers(ctx context.Context) ([]Customer, error)
+	RegisterEnterprise(ctx context.Context, arg RegisterEnterpriseParams) (Enterprise, error)
 	SaveRefreshToken(ctx context.Context, arg SaveRefreshTokenParams) (RefreshToken, error)
 	SoftDeleteCustomer(ctx context.Context, id pgtype.UUID) error
 	UpdateCustomer(ctx context.Context, arg UpdateCustomerParams) error

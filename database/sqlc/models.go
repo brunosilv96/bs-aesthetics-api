@@ -23,6 +23,16 @@ type Customer struct {
 	DeletedAt *time.Time  `json:"deleted_at"`
 }
 
+type Enterprise struct {
+	ID          pgtype.UUID `json:"id"`
+	TradeName   string      `json:"trade_name"`
+	Cnpj        string      `json:"cnpj"`
+	OpeningTime time.Time   `json:"opening_time"`
+	ClosingTime time.Time   `json:"closing_time"`
+	CreatedAt   time.Time   `json:"created_at"`
+	UpdatedAt   *time.Time  `json:"updated_at"`
+}
+
 type Procedure struct {
 	ID              pgtype.UUID `json:"id"`
 	RegistredBy     pgtype.UUID `json:"registred_by"`

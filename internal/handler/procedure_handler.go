@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/brunosilv96/bs-aesthetics-api/internal/apperrors"
+	"github.com/brunosilv96/bs-aesthetics-api/internal/middleware"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/model"
 	"github.com/brunosilv96/bs-aesthetics-api/internal/service"
 	"github.com/gin-gonic/gin"
@@ -24,18 +25,13 @@ func NewProcedureHandler(procedureService service.ProcedureService) *ProcedureHa
 func (handler *ProcedureHandler) Create(c *gin.Context) {
 	var payload model.RegisterProcedure
 
-	authIdentity, exists := c.Get("auth_identity")
-	if !exists {
-		slog.Error("error on extract customer_id or role on token")
-		c.Error(apperrors.ErrUnauthorized)
-		return
-	}
-
-	identity, ok := authIdentity.(*model.Identity)
-	if !ok {
-		slog.Error("error on extract customer_id or role on token")
-		c.Error(apperrors.ErrUnauthorized)
-		return
+	identity, err := middleware.GetIdentity(c)
+	if err != nil {
+		if errors.Is(err, apperrors.ErrUnauthorized) {
+			slog.Error("error on extract identity on token")
+			c.Error(apperrors.ErrUnauthorized)
+			return
+		}
 	}
 
 	if err := c.ShouldBindJSON(&payload); err != nil {

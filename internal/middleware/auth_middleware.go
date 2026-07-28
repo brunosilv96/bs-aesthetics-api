@@ -13,6 +13,8 @@ type AuthMiddleware struct {
 	tokenService pkg.TokenService
 }
 
+const AuthIdentityKey = "auth_identity"
+
 func NewAccessTokenMiddleware(tokenService pkg.TokenService) *AuthMiddleware {
 	return &AuthMiddleware{
 		tokenService: tokenService,
@@ -48,11 +50,37 @@ func (middleware *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 			return
 		}
 
-		c.Set("auth_identity", &model.Identity{
+		c.Set(AuthIdentityKey, &model.Identity{
 			CustomerID: claims.CustomerID,
 			Role:       claims.Role,
 		})
 
 		c.Next()
 	}
+}
+
+func (middleware *AuthMiddleware) RequireRole(role string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		identity, err := GetIdentity(c)
+		if err != nil || identity.Role != role {
+			c.Error(apperrors.ErrForbidden)
+			c.Abort()
+			return
+		}
+		c.Next()
+	}
+}
+
+func GetIdentity(c *gin.Context) (*model.Identity, error) {
+	value, exists := c.Get(AuthIdentityKey)
+	if !exists {
+		return nil, apperrors.ErrUnauthorized
+	}
+
+	identity, ok := value.(*model.Identity)
+	if !ok {
+		return nil, apperrors.ErrUnauthorized
+	}
+
+	return identity, nil
 }

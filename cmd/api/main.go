@@ -44,14 +44,17 @@ func main() {
 	customerRepository := repository.NewCustomerRepository(store)
 	authRepository := repository.NewAuthRepository(store)
 	procedureRepository := repository.NewProcedureRepository(store)
+	enterpriseRepository := repository.NewEnterpriseRepository(store)
 
 	customerService := service.NewCustomerService(*customerRepository)
 	authService := service.NewAuthService(*tokenService, *authRepository, *customerService)
 	procedureService := service.NewProcedureService(*customerRepository, *procedureRepository)
+	enterpriseService := service.NewEnterpriseService(*enterpriseRepository)
 
 	customerHandler := handler.NewCustomerHandler(*customerService)
 	authHandler := handler.NewAuthHandler(*authService)
 	procedureHandler := handler.NewProcedureHandler(*procedureService)
+	enterpriseHandler := handler.NewEnterpriseHandler(*enterpriseService)
 
 	// Server Config
 	r := gin.New()
@@ -68,6 +71,7 @@ func main() {
 	router.CustomerRouter(r, *customerHandler, *authMiddleware)
 	router.AuthRouter(r, *authHandler)
 	router.ProcedureRouter(r, *procedureHandler, *authMiddleware)
+	router.EnterpriseRouter(r, *enterpriseHandler, *authMiddleware)
 
 	server := &http.Server{
 		Addr:              ":8080",

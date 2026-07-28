@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS enterprise (
+    id UUID PRIMARY KEY DEFAULT generate_uuid_v7(),
+    trade_name VARCHAR(255) NOT NULL,
+    cnpj VARCHAR(255) NOT NULL,
+    opening_time TIMESTAMP WITH TIME ZONE NOT NULL,
+    closing_time TIMESTAMP WITH TIME ZONE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE
+);
