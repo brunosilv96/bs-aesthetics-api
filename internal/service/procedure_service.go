@@ -24,10 +24,6 @@ func NewProcedureService(customerRepository repository.CustomerRepository, proce
 }
 
 func (service *ProcedureService) Register(ctx context.Context, identity *model.Identity, payload model.RegisterProcedure) (*database.Procedure, error) {
-	if identity.Role != "admin" {
-		return nil, apperrors.ErrSysForbidden
-	}
-
 	if payload.Price < 0 {
 		return nil, apperrors.ErrSysInvalidInput
 	}
