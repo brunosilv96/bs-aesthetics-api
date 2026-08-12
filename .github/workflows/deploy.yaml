@@ -22,7 +22,16 @@ jobs:
 
       - name: Binary Compile
         run: |
-          GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o bs-aesthetics-api ./cmd/api
+          make build
+
+      - name: Clear SQLC Old Files
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            rm -rf /home/brunosilv/bs-aesthetics/api/database/sqlc
 
       - name: Copy artifacts to VPS
         uses: appleboy/scp-action@v1
@@ -30,7 +39,7 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          source: "bs-aesthetics-api,database/,Makefile,sqlc.yaml,docker-compose.yml"
+          source: "bin/bs-aesthetics-api,database/,Makefile,sqlc.yaml,docker-compose.yml"
           target: "/home/brunosilv/bs-aesthetics/api"
           strip_components: 0
 
