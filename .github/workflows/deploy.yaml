@@ -16,6 +16,10 @@ jobs:
         with:
           go-version: '1.23'
 
+      - name: Run SQLC
+        run: |
+          make sqlc
+
       - name: Binary Compile
         run: |
           GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o bs-aesthetics-api ./cmd/api
