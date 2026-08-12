@@ -15,6 +15,9 @@ dev:
 
 server:
 	GIN_MODE=release go run cmd/api/main.go
+
+build:
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o ./bin/bs-aesthetics-api ./cmd/api
 # --------------------------------------------------------------------------------------------------------------------
 
 migrateup:
@@ -41,4 +44,4 @@ composedown:
 dropcompose:
 	docker compose down -v
 
-.PHONY: sqlc dev server composeup composedown dropcompose migrateup migratedown create_migration setup
+.PHONY: sqlc dev server composeup composedown dropcompose migrateup migratedown create_migration setup build
