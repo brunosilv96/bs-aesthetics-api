@@ -21,7 +21,7 @@ jobs:
           GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o bs-aesthetics-api ./cmd/api
 
       - name: Copy artifacts to VPS
-        uses: appleboy/scp-action@v0.1.7
+        uses: appleboy/scp-action@v1
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
