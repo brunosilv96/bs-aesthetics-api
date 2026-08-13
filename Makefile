@@ -17,7 +17,7 @@ server:
 	GIN_MODE=release go run cmd/api/main.go
 
 build:
-	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o ./bin/bs-aesthetics-api ./cmd/api
+	GIN_MODE=release GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o ./bin/bs-aesthetics-api ./cmd/api
 # --------------------------------------------------------------------------------------------------------------------
 
 migrateup:
