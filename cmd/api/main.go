@@ -74,7 +74,7 @@ func main() {
 	router.EnterpriseRouter(r, *enterpriseHandler, *authMiddleware)
 
 	server := &http.Server{
-		Addr:              ":8080",
+		Addr:              "127.0.0.1:8080",
 		Handler:           r,
 		ReadTimeout:       10 * time.Second,
 		ReadHeaderTimeout: 5 * time.Second,
