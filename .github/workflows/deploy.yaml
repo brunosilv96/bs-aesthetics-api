@@ -37,7 +37,7 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            cd ~/bs-aesthetics/api
+            cd /home/brunosilv/bs-aesthetics/api
             chmod +x bs-aesthetics-api
             make setup
             sudo systemctl restart bs-aesthetics.service
